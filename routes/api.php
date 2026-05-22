@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\V1\BrandController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\v1\ContactController;
+use App\Http\Controllers\Api\v1\MoneyTransactionController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\V1\StransactionController;
 use App\Http\Controllers\Api\v1\WarehouseController;
@@ -30,6 +31,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('products', ProductController::class);
     Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('stransactions', StransactionController::class);
+    Route::apiResource('mtransactions', MoneyTransactionController::class);
     Route::post('/users/{user}/link',[AuthController::class,'linkContact']);
     Route::post('/users/{user}/unlink',[AuthController::class,'linkContact']);
 
