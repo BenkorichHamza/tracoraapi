@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WarehouseResource;
 use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class WarehouseController extends Controller
@@ -25,62 +26,100 @@ class WarehouseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+'id'=>['uuid','unique:warehouses,id'],
 
             'name' => ['required', 'string', 'max:255'],
 
-            'name_ar' => ['nullable', 'string', 'max:255'],
+            'nameAr' => ['nullable', 'string', 'max:255'],
 
             'location' => ['nullable', 'string'],
 
             'description' => ['nullable', 'string'],
 
             'type' => ['nullable', 'string'],
+
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
-        $validated['created_by'] = auth()->id();
+        $validated['createdBy'] = auth()->id();
 
         $warehouse = Warehouse::create($validated);
 
         return new WarehouseResource(
-            $warehouse->load(['createdBy'])
+            $warehouse
         );
     }
+
+    public function sync(Request $request)
+{
+    // Validate and cast timestamp safely
+$lastSyncMs = $request->input('last_sync_date');
+$lastSyncDate = is_numeric($lastSyncMs) && $lastSyncMs > 0
+    ? Carbon::createFromTimestampMs((int) $lastSyncMs)
+    : null;
+
+$warehouses = Warehouse::query()
+    ->with([
+        'createdByUser',
+        'updatedByUser',
+        'deletedByUser',
+    ])
+    ->when($lastSyncDate, function ($query, $lastSyncDate) {
+        $query->where('updated_at', '>=', $lastSyncDate)
+              ->where(function ($subQuery) {
+                  // Handles both NULL updatedBy and non-current user updates
+                  $subQuery->whereNull('updatedBy')
+                           ->orWhere('updatedBy', '<>', auth()->id());
+              });
+    }, function ($query) {
+        // Fallback baseline when no lastSyncDate is provided
+        $query->where('updated_at', '>', Carbon::parse('2026-01-01'));
+    })
+    ->latest('updated_at')
+    ->get();
+
+return WarehouseResource::collection($warehouses);
+}
 
     public function show(Warehouse $warehouse)
     {
         return new WarehouseResource(
-            $warehouse->load(['createdBy', 'updatedBy'])
+            $warehouse
         );
     }
 
     public function update(Request $request, Warehouse $warehouse)
     {
         $validated = $request->validate([
-
+'id'=>['uuid'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
 
-            'name_ar' => ['nullable', 'string', 'max:255'],
+            'nameAr' => ['nullable', 'string', 'max:255'],
 
             'location' => ['nullable', 'string'],
 
             'description' => ['nullable', 'string'],
 
             'type' => ['nullable', 'string'],
+
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
-        $validated['updated_by'] = auth()->id();
+        $validated['updatedBy'] = auth()->id();
 
         $warehouse->update($validated);
 
         return new WarehouseResource(
-            $warehouse->load(['updatedBy'])
+            $warehouse
         );
     }
 
     public function destroy(Warehouse $warehouse)
     {
         $warehouse->update([
-            'deleted_by' => auth()->id(),
+            'deletedBy' => auth()->id(),
         ]);
 
         $warehouse->delete();

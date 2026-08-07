@@ -29,7 +29,7 @@ return new class extends Migration
 
             $table->string('name');
 
-            $table->string('name_ar')->nullable();
+            $table->string('nameAr')->nullable();
 
             $table->text('location')->nullable();
 
@@ -37,17 +37,21 @@ return new class extends Migration
 
             $table->string('type')->nullable();
 
+            $table->integer('createdAt')->nullable();
+            $table->integer('updatedAt')->nullable();
+            $table->integer('deletedAt')->nullable();
+
             /*
             |--------------------------------------------------------------------------
             | Audit
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuidFor(User::class, 'created_by')->nullable();
+            $table->foreignUuidFor(User::class, 'createdBy')->nullable();
 
-            $table->foreignUuidFor(User::class, 'updated_by')->nullable();
+            $table->foreignUuidFor(User::class, 'updatedBy')->nullable();
 
-            $table->foreignUuidFor(User::class, 'deleted_by')->nullable();
+            $table->foreignUuidFor(User::class, 'deletedBy')->nullable();
 
             /*
             |--------------------------------------------------------------------------

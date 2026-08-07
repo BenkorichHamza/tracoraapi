@@ -21,19 +21,24 @@ class Contact extends Model implements HasMedia
     }
 
 
-    public function createdBy(): BelongsTo
+    public function createdByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'createdBy');
     }
 
-    public function updatedBy(): BelongsTo
+    public function updatedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updatedBy');
     }
 
-    public function deletedBy(): BelongsTo
+    public function deletedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deletedBy');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
 }

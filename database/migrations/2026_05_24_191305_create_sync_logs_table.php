@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stransactions', function (Blueprint $table) {
-             /*
+       Schema::create('sync_logs', function (Blueprint $table) {
+
+            /*
             |--------------------------------------------------------------------------
             | Primary Key
             |--------------------------------------------------------------------------
@@ -23,91 +23,55 @@ return new class extends Migration
 
             /*
             |--------------------------------------------------------------------------
-            | Status
+            | Source Info
             |--------------------------------------------------------------------------
             */
 
-            $table->integer('status')->default(0);
+            $table->string('table_name');
+            $table->uuid('row_id');
 
             /*
             |--------------------------------------------------------------------------
-            | Users / Employees
+            | Operation Type
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuid('employeeId')
-                ->nullable()
-                ->constrained('contacts')
-                ->nullOnDelete();
-
-            $table->foreignUuid('userId')
-                ->nullable()
-                ->constrained('contacts')
-                ->nullOnDelete();
+            $table->string('operation');
+            // INSERT | UPDATE | DELETE
 
             /*
             |--------------------------------------------------------------------------
-            | Warehouses
+            | Data Snapshot
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuid('from_warehouse')
-                ->nullable()
-                ->constrained('warehouses')
-                ->nullOnDelete();
-
-            $table->foreignUuid('to_warehouse')
-                ->nullable()
-                ->constrained('warehouses')
-                ->nullOnDelete();
+            $table->json('data')->nullable();
 
             /*
             |--------------------------------------------------------------------------
-            | Transaction Data
+            | Sync Metadata
             |--------------------------------------------------------------------------
             */
 
-            $table->string('type')->nullable();
-
-            $table->text('description')->nullable();
-
-            $table->double('topay')->default(0);
-
-            $table->double('total')->default(0);
-
-            $table->double('credit')->default(0);
-
-            $table->double('payment')->default(0);
-
-            $table->double('tax')->default(0);
-
-            $table->timestamp('datetime')->nullable();
-
-
-            $table->integer('createdAt')->nullable();
-            $table->integer('updatedAt')->nullable();
-            $table->integer('deletedAt')->nullable();
-            /*
-            |--------------------------------------------------------------------------
-            | Audit
-            |--------------------------------------------------------------------------
-            */
-
-            $table->foreignUuidFor(User::class, 'createdBy')->nullable();
-
-            $table->foreignUuidFor(User::class, 'updatedBy')->nullable();
-
-            $table->foreignUuidFor(User::class, 'deletedBy')->nullable();
+            $table->uuid('user_id')->nullable();   // who made change
+            $table->uuid('device_id')->nullable(); // optional multi-device support
 
             /*
             |--------------------------------------------------------------------------
-            | Laravel timestamps
+            | Timestamp for sync pull
             |--------------------------------------------------------------------------
             */
 
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
 
-            $table->softDeletes();
+            /*
+            |--------------------------------------------------------------------------
+            | Indexes (VERY IMPORTANT for sync speed)
+            |--------------------------------------------------------------------------
+            */
+
+            $table->index(['table_name', 'created_at']);
+            $table->index('row_id');
         });
     }
 
@@ -116,6 +80,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stransactions');
+        Schema::dropIfExists('sync_logs');
     }
 };

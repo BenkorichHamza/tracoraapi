@@ -12,31 +12,25 @@ class Category extends Model implements HasMedia
 {
     use HasUuids, InteractsWithMedia;
 
-    protected $fillable = [
-        'name',
-        'name_ar',
-        'created_by',
-        'updated_by',
-        'deleted_by'
-    ];
+    protected $guarded = [];
 
     public function products(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'category_product');
     }
 
-    public function createdBy(): BelongsTo
+    public function createdByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'createdBy');
     }
 
-    public function updatedBy(): BelongsTo
+    public function updatedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updatedBy');
     }
 
-    public function deletedBy(): BelongsTo
+    public function deletedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deletedBy');
     }
 }

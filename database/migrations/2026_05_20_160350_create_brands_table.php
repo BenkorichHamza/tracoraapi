@@ -17,10 +17,13 @@ return new class extends Migration
            $table->uuid('id')->primary();
 
             $table->string('name');
-            $table->string('name_ar')->nullable();
-            $table->foreignUuidFor(User::class,'created_by')->nullable();
-            $table->foreignUuidFor(User::class,'updated_by')->nullable();
-            $table->foreignUuidFor(User::class,'deleted_by')->nullable();
+            $table->string('nameAr')->nullable();
+            $table->integer('createdAt')->nullable();
+            $table->integer('updatedAt')->nullable();
+            $table->integer('deletedAt')->nullable();
+            $table->foreignUuidFor(User::class,'createdBy')->nullable();
+            $table->foreignUuidFor(User::class,'updatedBy')->nullable();
+            $table->foreignUuidFor(User::class,'deletedBy')->nullable();
             /*
             |--------------------------------------------------------------------------
             | Extra Data

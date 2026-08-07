@@ -32,11 +32,14 @@ class ContactResource extends JsonResource
 
             'type' => $this->type,
 
-            'firstName' => $this->first_name,
+            'firstName' => $this->firstName,
 
-            'lastName' => $this->last_name,
+            'lastName' => $this->lastName,
 
-            'companyName' => $this->company_name,
+            'email' => $this->email,
+
+            'companyName' => $this->companyName,
+            'warehouse' => $this->warehouse,
             'image' => $this->getFirstMediaUrl('contact'),
 
             /*
@@ -91,11 +94,11 @@ class ContactResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'createdBy' => $this->created_by,
+            'createdBy' => $this->createdBy,
 
-            'updatedBy' => $this->updated_by,
+            'updatedBy' => $this->updatedBy,
 
-            'deletedBy' => $this->deleted_by,
+            'deletedBy' => $this->deletedBy,
 
             /*
             |--------------------------------------------------------------------------
@@ -103,11 +106,9 @@ class ContactResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'createdAt' => $this->created_at?->timestamp,
-
-            'updatedAt' => $this->updated_at?->timestamp,
-
-            'deletedAt' => $this->deleted_at?->timestamp,
+           'createdAt' => $this->createdAt,
+'updatedAt' => $this->updatedAt,
+'deletedAt' => $this->deletedAt,
 
             /*
             |--------------------------------------------------------------------------
@@ -115,21 +116,7 @@ class ContactResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'createdByUser' => $this->whenLoaded(
-                'createdBy',
-                fn () => [
-                    'id' => $this->createdBy->id,
-                    'name' => $this->createdBy->name,
-                ]
-            ),
 
-            'updatedByUser' => $this->whenLoaded(
-                'updatedBy',
-                fn () => [
-                    'id' => $this->updatedBy->id,
-                    'name' => $this->updatedBy->name,
-                ]
-            ),
 
             'user' => $this->whenLoaded('user'),
         ];

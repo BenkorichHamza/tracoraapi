@@ -30,6 +30,8 @@ class CategoryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'name_ar' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
         $category = Category::create([
@@ -47,7 +49,7 @@ class CategoryController extends Controller
         }
 
         return new CategoryResource(
-            $category->load(['media', 'createdBy'])
+            $category->load(['media'])
         );
     }
 
@@ -56,7 +58,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        return new CategoryResource($category->load(['createdBy', 'updatedBy', 'deletedBy']));
+        return new CategoryResource($category);
     }
 
     /**
@@ -68,6 +70,8 @@ class CategoryController extends Controller
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'name_ar' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
         $validated['updated_by'] = auth()->id();
@@ -81,7 +85,7 @@ class CategoryController extends Controller
                 ->toMediaCollection('category');
         }
 
-        return new CategoryResource($category->load(['createdBy', 'updatedBy', 'deletedBy']));
+        return new CategoryResource($category);
     }
 
     /**

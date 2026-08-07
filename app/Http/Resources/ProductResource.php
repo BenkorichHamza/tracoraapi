@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -31,7 +32,7 @@ class ProductResource extends JsonResource
 
             'name' => $this->name,
 
-            'nameAr' => $this->name_ar,
+            'nameAr' => $this->nameAr,
 
             'description' => $this->description,
 
@@ -47,11 +48,11 @@ class ProductResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'isInteger' => (bool) $this->is_integer,
+            'isInteger' => (bool) $this->isInteger,
 
-            'isOnline' => (bool) $this->is_online,
+            'isOnline' => (bool) $this->isOnline,
 
-            'inputPrice' => (bool) $this->input_price,
+            'inputPrice' => (bool) $this->inputPrice,
 
             /*
             |--------------------------------------------------------------------------
@@ -59,13 +60,13 @@ class ProductResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'buyPrice' => (double) $this->buy_price,
+            'buyPrice' => (double) $this->buyPrice,
 
-            'sellPrice' => (double) $this->sell_price,
+            'sellPrice' => (double) $this->sellPrice,
 
-            'sellPrice1' => (double) $this->sell_price_1,
+            'sellPrice1' => (double) $this->sellPrice1,
 
-            'sellPrice2' => (double) $this->sell_price_2,
+            'sellPrice2' => (double) $this->sellPrice2,
 
             /*
             |--------------------------------------------------------------------------
@@ -77,9 +78,9 @@ class ProductResource extends JsonResource
 
             'marge' => (double) $this->marge,
 
-            'marge1' => (double) $this->marge_1,
+            'marge1' => (double) $this->marge1,
 
-            'marge2' => (double) $this->marge_2,
+            'marge2' => (double) $this->marge2,
 
             'ttc' => (double) $this->ttc,
 
@@ -90,8 +91,9 @@ class ProductResource extends JsonResource
             */
 
             'stock' => (double) $this->stock,
+            'rest' => (double) $this->rest,
 
-            'stockValue' => (double) $this->stock_value,
+            'stockValue' => (double) $this->stockValue,
 
             'alert' => (double) $this->alert,
 
@@ -103,9 +105,9 @@ class ProductResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'fabDate' => $this->fab_date?->timestamp,
+            'fabDate' => $this->fabDate?->timestamp,
 
-            'perDate' => $this->per_date?->timestamp,
+            'perDate' => $this->perDate?->timestamp,
 
             /*
             |--------------------------------------------------------------------------
@@ -113,7 +115,7 @@ class ProductResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'brandId' => $this->brand_id,
+            'brandId' => $this->brandId,
 
             'brand' => $this->whenLoaded(
                 'brand',
@@ -156,45 +158,24 @@ class ProductResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'createdBy' => $this->created_by,
+            'createdBy' => $this->createdByUser?->id,
 
-            'updatedBy' => $this->updated_by,
+            'updatedBy' => $this->updatedByUser?->id    ,
 
-            'deletedBy' => $this->deleted_by,
+            'deletedBy' => $this->deletedByUser?->id        ,
 
             /*
             |--------------------------------------------------------------------------
             | Timestamps
             |--------------------------------------------------------------------------
             */
+            'deletedAt' =>$this->deletedAt,
 
-            'createdAt' => $this->created_at?->timestamp,
+            'createdAt' =>$this->created_at==null?null:Carbon::parse($this->created_at)->getTimestampMs(),
+            'updatedAt' => $this->updated_at==null?null:Carbon::parse($this->updated_at)->getTimestampMs(),
+            'deleted_at' => $this->deleted_at==null?null:Carbon::parse($this->deleted_at)->getTimestampMs(),
 
-            'updatedAt' => $this->updated_at?->timestamp,
 
-            'deletedAt' => $this->deleted_at?->timestamp,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Audit Relations
-            |--------------------------------------------------------------------------
-            */
-
-            'createdByUser' => $this->whenLoaded(
-                'createdBy',
-                fn () => [
-                    'id' => $this->createdBy->id,
-                    'name' => $this->createdBy->name,
-                ]
-            ),
-
-            'updatedByUser' => $this->whenLoaded(
-                'updatedBy',
-                fn () => [
-                    'id' => $this->updatedBy->id,
-                    'name' => $this->updatedBy->name,
-                ]
-            ),
         ];
     }
 }

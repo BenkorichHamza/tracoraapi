@@ -34,16 +34,17 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->with("contact")->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
-
         $token = $user->createToken('mobile-token')->plainTextToken;
-
+        $user->load('contact.warehouse');
         return response()->json([
             'user' => $user,
+            'contact' => $user->contact,
+            'warehouse' => $user->contact->warehouse,
             'token' => $token
         ]);
     }

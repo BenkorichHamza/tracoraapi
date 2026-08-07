@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StransactionResource;
 use App\Models\Stransaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class StransactionController extends Controller
@@ -19,19 +21,56 @@ class StransactionController extends Controller
         ])->latest()->paginate(20);
     }
 
+    public function sync(Request $request)
+{
+    // Validate and cast timestamp safely
+$lastSyncMs = $request->input('last_sync_date');
+$lastSyncDate = is_numeric($lastSyncMs) && $lastSyncMs > 0
+    ? Carbon::createFromTimestampMs((int) $lastSyncMs)
+    : null;
+
+$stransactions = Stransaction::query()
+    ->with([
+        'employee',
+        'user',
+        'fromWarehouse',
+        'toWarehouse',
+        'products',
+        'createdByUser',
+        'updatedByUser',
+        'deletedByUser',
+    ])
+    ->when($lastSyncDate, function ($query, $lastSyncDate) {
+        $query->where('updated_at', '>=', $lastSyncDate)
+              ->where(function ($subQuery) {
+                  // Handles both NULL updatedBy and non-current user updates
+                  $subQuery->whereNull('updatedBy')
+                           ->orWhere('updatedBy', '<>', auth()->id());
+              });
+    }, function ($query) {
+        // Fallback baseline when no lastSyncDate is provided
+        $query->where('updated_at', '>', Carbon::parse('2026-01-01'));
+    })
+    ->latest('updated_at')
+    ->get();
+
+    return StransactionResource::collection($stransactions);
+}
+
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'id'    =>['uuid'],
 
             'status' => ['nullable', 'integer'],
 
-            'employee_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'employeeId' => ['nullable', 'uuid', 'exists:users,id'],
 
-            'user_id' => ['nullable', 'uuid', 'exists:contacts,id'],
+            'userId' => ['nullable', 'uuid', 'exists:contacts,id'],
 
-            'from_warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+            'from_warehouse' => ['nullable', 'uuid', 'exists:warehouses,id'],
 
-            'to_warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+            'to_warehouse' => ['nullable', 'uuid', 'exists:warehouses,id'],
 
             'type' => ['nullable', 'string'],
 
@@ -47,11 +86,11 @@ class StransactionController extends Controller
 
             'tax' => ['nullable', 'numeric'],
 
-            'datetime' => ['nullable', 'date'],
+            'datetime' => ['nullable', 'numeric'],
 
             'products' => ['required', 'array'],
 
-            'products.*.product_id' => ['required', 'uuid', 'exists:products,id'],
+            'products.*.productId' => ['required', 'uuid', 'exists:products,id'],
 
             'products.*.qte' => ['required', 'numeric'],
 
@@ -60,11 +99,15 @@ class StransactionController extends Controller
             'products.*.tax' => ['nullable', 'numeric'],
 
             'products.*.direction' => ['nullable', 'integer'],
+
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
+$validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ?? now()->getTimestampMs())->setTimezone(config('app.timezone'));
         $transaction = Stransaction::create([
             ...collect($validated)->except('products')->toArray(),
-            'created_by' => auth()->id(),
+            'createdBy' => auth()->id(),
         ]);
 
         /*
@@ -75,7 +118,7 @@ class StransactionController extends Controller
 
         foreach ($validated['products'] as $product) {
 
-            $transaction->products()->attach($product['product_id'], [
+            $transaction->products()->attach($product['productId'], [
                 'qte' => $product['qte'],
                 'price' => $product['price'],
                 'tax' => $product['tax'] ?? 0,
@@ -103,16 +146,16 @@ class StransactionController extends Controller
     public function update(Request $request, Stransaction $stransaction)
 {
     $validated = $request->validate([
-
+'id'=>['uuid'],
         'status' => ['nullable', 'integer'],
 
-        'employee_id' => ['nullable', 'uuid', 'exists:users,id'],
+        'employeeId' => ['nullable', 'uuid', 'exists:users,id'],
 
-        'user_id' => ['nullable', 'uuid', 'exists:contacts,id'],
+        'userId' => ['nullable', 'uuid', 'exists:contacts,id'],
 
-        'from_warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+        'from_warehouse' => ['nullable', 'uuid', 'exists:warehouses,id'],
 
-        'to_warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+        'to_warehouse' => ['nullable', 'uuid', 'exists:warehouses,id'],
 
         'type' => ['nullable', 'string'],
 
@@ -128,11 +171,11 @@ class StransactionController extends Controller
 
         'tax' => ['nullable', 'numeric'],
 
-        'datetime' => ['nullable', 'date'],
+        'datetime' => ['nullable', 'numeric'],
 
         'products' => ['nullable', 'array'],
 
-        'products.*.product_id' => ['required_with:products', 'uuid', 'exists:products,id'],
+        'products.*.productId' => ['required_with:products', 'uuid', 'exists:products,id'],
 
         'products.*.qte' => ['required_with:products', 'numeric'],
 
@@ -141,6 +184,9 @@ class StransactionController extends Controller
         'products.*.tax' => ['nullable', 'numeric'],
 
         'products.*.direction' => ['nullable', 'integer'],
+
+        'deletedAt' => ['nullable', 'numeric'],
+
     ]);
 
     /*
@@ -149,9 +195,11 @@ class StransactionController extends Controller
     |--------------------------------------------------------------------------
     */
 
+$validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ?? now()->getTimestampMs())->setTimezone(config('app.timezone'));
+
     $stransaction->update([
         ...collect($validated)->except('products')->toArray(),
-        'updated_by' => auth()->id(),
+        'updatedBy' => auth()->id(),
     ]);
 
     /*
@@ -167,7 +215,7 @@ class StransactionController extends Controller
 
         foreach ($validated['products'] as $product) {
 
-            $syncData[$product['product_id']] = [
+            $syncData[$product['productId']] = [
                 'qte' => $product['qte'],
                 'price' => $product['price'],
                 'tax' => $product['tax'] ?? 0,
@@ -187,7 +235,7 @@ class StransactionController extends Controller
     public function destroy(Stransaction $stransaction)
     {
         $stransaction->update([
-            'deleted_by' => auth()->id()
+            'deletedBy' => auth()->id()
         ]);
 
         $stransaction->delete();

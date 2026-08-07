@@ -32,33 +32,13 @@ class WarehouseResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'createdBy' => $this->created_by,
+            'createdBy' => $this->createdBy,
 
-            'updatedBy' => $this->updated_by,
+            'updatedBy' => $this->updatedBy,
 
-            'deletedBy' => $this->deleted_by,
+            'deletedBy' => $this->deletedBy,
 
-            /*
-            |--------------------------------------------------------------------------
-            | Relations
-            |--------------------------------------------------------------------------
-            */
 
-            'createdByUser' => $this->whenLoaded(
-                'createdBy',
-                fn () => [
-                    'id' => $this->createdBy->id,
-                    'name' => $this->createdBy->name,
-                ]
-            ),
-
-            'updatedByUser' => $this->whenLoaded(
-                'updatedBy',
-                fn () => [
-                    'id' => $this->updatedBy->id,
-                    'name' => $this->updatedBy->name,
-                ]
-            ),
 
             /*
             |--------------------------------------------------------------------------
@@ -66,11 +46,13 @@ class WarehouseResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'createdAt' => $this->created_at?->timestamp,
+            'createdAt' => $this->createdAt,
+            'updatedAt' => $this->updatedAt,
+            'created_at' =>$this->created_at==null?null:Carbon::parse($this->created_at)->getTimestampMs(),
+            'updated_at' => $this->updated_at==null?null:Carbon::parse($this->updated_at)->getTimestampMs(),
+            'deleted_at' => $this->deleted_at==null?null:Carbon::parse($this->deleted_at)->getTimestampMs(),
 
-            'updatedAt' => $this->updated_at?->timestamp,
-
-            'deletedAt' => $this->deleted_at?->timestamp,
+            'deletedAt' => $this->deletedAt,
         ];
     }
 }

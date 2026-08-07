@@ -11,8 +11,7 @@ class Product extends Model implements HasMedia
 {
     use InteractsWithMedia, HasUuids;
 
-    protected $guarded = [
-    ];
+    protected $guarded = [];
 
     public function categories(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
@@ -21,22 +20,22 @@ class Product extends Model implements HasMedia
 
     public function brand(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Brand::class);
+        return $this->belongsTo(Brand::class,'brandId');
     }
 
-    public function createdBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function createdByUser(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'createdBy');
     }
 
-    public function updatedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function updatedByUser(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updatedBy');
     }
 
-    public function deletedBy(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function deletedByUser(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(User::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deletedBy');
     }
 
     public function transactions()

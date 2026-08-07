@@ -4,22 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Warehouse extends Model
 {
      use HasUuids;
-    protected $fillable = [
-
-        'name',
-        'name_ar',
-        'location',
-        'description',
-        'type',
-
-        'created_by',
-        'updated_by',
-        'deleted_by',
-    ];
+    protected $guarded = [];
 
     /*
     |--------------------------------------------------------------------------
@@ -27,26 +17,13 @@ class Warehouse extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function createdBy()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
 
-    public function updatedBy()
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    public function deletedBy()
-    {
-        return $this->belongsTo(User::class, 'deleted_by');
-    }
 
     public function outgoingTransactions()
     {
         return $this->hasMany(
             Stransaction::class,
-            'from_warehouse_id'
+            'from_warehouse'
         );
     }
 
@@ -54,14 +31,33 @@ class Warehouse extends Model
     {
         return $this->hasMany(
             Stransaction::class,
-            'to_warehouse_id'
+            'to_warehouse'
         );
     }
 
      public function allTransactions()
+{
+    return $this->hasMany(Stransaction::class, 'from_warehouse') // Base relation on from_warehouse
+                ->orWhere('to_warehouse', $this->id);           // Or match where it's to_warehouse
+}
+
+    public function createdByUser(): BelongsTo
     {
-        return Stransaction::query()
-            ->where('from_warehouse_id', $this->id)
-            ->orWhere('to_warehouse_id', $this->id);
+        return $this->belongsTo(User::class, 'createdBy');
+    }
+
+    public function updatedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updatedBy');
+    }
+
+    public function deletedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deletedBy');
+    }
+
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class, 'warehouse_id');
     }
 }

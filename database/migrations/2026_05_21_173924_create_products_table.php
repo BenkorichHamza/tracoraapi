@@ -24,7 +24,7 @@ return new class extends Migration
 
             $table->string('name');
 
-            $table->string('name_ar')->nullable();
+            $table->string('nameAr')->nullable();
 
             $table->text('description')->nullable();
 
@@ -41,11 +41,11 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->boolean('is_integer')->default(false);
+            $table->boolean('isInteger')->default(false);
 
-            $table->boolean('is_online')->default(false);
+            $table->boolean('isOnline')->default(false);
 
-            $table->boolean('input_price')->default(false);
+            $table->boolean('inputPrice')->default(false);
 
             /*
             |--------------------------------------------------------------------------
@@ -53,13 +53,13 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->double('buy_price')->default(0);
+            $table->double('buyPrice')->default(0);
 
-            $table->double('sell_price')->default(0);
+            $table->double('sellPrice')->default(0);
 
-            $table->double('sell_price_1')->default(0);
+            $table->double('sellPrice1')->default(0);
 
-            $table->double('sell_price_2')->default(0);
+            $table->double('sellPrice2')->default(0);
 
             /*
             |--------------------------------------------------------------------------
@@ -71,9 +71,9 @@ return new class extends Migration
 
             $table->double('marge')->default(0);
 
-            $table->double('marge_1')->default(0);
+            $table->double('marge1')->default(0);
 
-            $table->double('marge_2')->default(0);
+            $table->double('marge2')->default(0);
 
             $table->double('ttc')->default(0);
 
@@ -85,11 +85,15 @@ return new class extends Migration
 
             $table->double('stock')->default(0);
 
-            $table->double('stock_value')->default(0);
+            $table->double('stockValue')->default(0);
 
             $table->double('alert')->default(0);
 
             $table->integer('packaging')->default(1);
+
+            $table->bigInteger('createdAt')->nullable();
+            $table->bigInteger('updatedAt')->nullable();
+            $table->bigInteger('deletedAt')->nullable();
 
             /*
             |--------------------------------------------------------------------------
@@ -97,9 +101,9 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->timestamp('fab_date')->nullable();
+            $table->timestamp('fabDate')->nullable();
 
-            $table->timestamp('per_date')->nullable();
+            $table->timestamp('perDate')->nullable();
 
             /*
             |--------------------------------------------------------------------------
@@ -107,7 +111,7 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuidFor(Brand::class, 'brand_id')
+            $table->foreignUuidFor(Brand::class, 'brandId')
                 ->nullable()
                 ->constrained()
                 ->nullOnDelete();
@@ -118,13 +122,13 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuidFor(User::class, 'created_by')
+            $table->foreignUuidFor(User::class, 'createdBy')
                 ->nullable();
 
-            $table->foreignUuidFor(User::class, 'updated_by')
+            $table->foreignUuidFor(User::class, 'updatedBy')
                 ->nullable();
 
-            $table->foreignUuidFor(User::class, 'deleted_by')
+            $table->foreignUuidFor(User::class, 'deletedBy')
                 ->nullable();
 
             /*

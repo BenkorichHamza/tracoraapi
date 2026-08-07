@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\v1\ContactController;
 use App\Http\Controllers\Api\v1\MoneyTransactionController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\V1\StransactionController;
+use App\Http\Controllers\Api\v1\SyncLogController;
 use App\Http\Controllers\Api\v1\WarehouseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,13 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('stransactions', StransactionController::class);
     Route::apiResource('mtransactions', MoneyTransactionController::class);
+    Route::post('/push', [SyncLogController::class, 'push']);
+    Route::get('/syncproducts', [ProductController::class, 'syncProduct']);
+    Route::get('/syncwarehouses', [WarehouseController::class, 'sync']);
+    Route::get('/synccontacts', [ContactController::class, 'sync']);
+    Route::get('/syncmoneytransactions', [MoneyTransactionController::class, 'sync']);
+    Route::get('/syncstransactions', [StransactionController::class, 'sync']);
+    // Route::get('/money-transactions/{moneyTransaction}', [MoneyTransactionController::class, 'show']);
     Route::post('/users/{user}/link',[AuthController::class,'linkContact']);
     Route::post('/users/{user}/unlink',[AuthController::class,'linkContact']);
 

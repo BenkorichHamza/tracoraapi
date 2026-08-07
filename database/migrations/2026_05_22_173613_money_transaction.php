@@ -28,10 +28,10 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuidFor(User::class, 'user_id')
+            $table->foreignUuidFor(User::class, 'userId')
                 ->nullable();
 
-            $table->foreignUuidFor(User::class, 'employee_id')
+            $table->foreignUuidFor(User::class, 'employeeId')
                 ->nullable();
 
             /*
@@ -66,11 +66,15 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuidFor(User::class, 'created_by')->nullable();
+            $table->integer('createdAt')->nullable();
+            $table->integer('updatedAt')->nullable();
+            $table->integer('deletedAt')->nullable();
 
-            $table->foreignUuidFor(User::class, 'updated_by')->nullable();
+            $table->foreignUuidFor(User::class, 'createdBy')->nullable();
 
-            $table->foreignUuidFor(User::class, 'deleted_by')->nullable();
+            $table->foreignUuidFor(User::class, 'updatedBy')->nullable();
+
+            $table->foreignUuidFor(User::class, 'deletedBy')->nullable();
 
             /*
             |--------------------------------------------------------------------------

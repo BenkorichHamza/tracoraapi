@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use DateTime;
+ use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -20,8 +22,8 @@ class ProductController extends Controller
                 'media',
                 'brand',
                 'categories',
-                'createdBy',
-                'updatedBy',
+                'createdByUser',
+                'updatedByUser',
             ])
 
             ->latest()
@@ -31,13 +33,54 @@ class ProductController extends Controller
         return ProductResource::collection($products);
     }
 
+
+
+public function syncProduct(Request $request)
+{
+    // Validate and cast timestamp safely
+$lastSyncMs = $request->input('last_sync_date');
+$lastSyncDate = is_numeric($lastSyncMs) && $lastSyncMs > 0
+    ? Carbon::createFromTimestampMs((int) $lastSyncMs)
+    : null;
+
+$products = Product::query()
+    ->with([
+        'media',
+        'brand',
+        'categories',
+        'createdByUser',
+        'updatedByUser',
+        'deletedByUser',
+    ])
+    ->when($lastSyncDate, function ($query, $lastSyncDate) {
+        $query->where('updated_at', '>=', $lastSyncDate)
+              ->where(function ($subQuery) {
+                  // Handles both NULL updatedBy and non-current user updates
+                  $subQuery->whereNull('updatedBy')
+                           ->orWhere('updatedBy', '<>', auth()->id());
+              });
+    }, function ($query) {
+        // Fallback baseline when no lastSyncDate is provided
+        $query->where('updated_at', '>', Carbon::parse('2026-01-01'));
+    })
+    ->latest('updated_at')
+    ->get();
+
+return ProductResource::collection($products);
+}
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        if ($request->image === '') {
+        $request->merge([
+            'image' => null,
+        ]);
+    }
         $validated = $request->validate([
 
+            'id'=>['uuid'],
             /*
             |--------------------------------------------------------------------------
             | Basic Information
@@ -46,7 +89,7 @@ class ProductController extends Controller
 
             'name' => ['required', 'string', 'max:255'],
 
-            'name_ar' => ['nullable', 'string', 'max:255'],
+            'nameAr' => ['nullable', 'string', 'max:255'],
 
             'description' => ['nullable', 'string'],
 
@@ -62,11 +105,11 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'is_integer' => ['nullable', 'boolean'],
+            'isInteger' => ['nullable', 'boolean'],
 
-            'is_online' => ['nullable', 'boolean'],
+            'isOnline' => ['nullable', 'boolean'],
 
-            'input_price' => ['nullable', 'boolean'],
+            'inputPrice' => ['nullable', 'boolean'],
 
             /*
             |--------------------------------------------------------------------------
@@ -74,13 +117,13 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'buy_price' => ['nullable', 'numeric'],
+            'buyPrice' => ['nullable', 'numeric'],
 
-            'sell_price' => ['nullable', 'numeric'],
+            'sellPrice' => ['nullable', 'numeric'],
 
-            'sell_price_1' => ['nullable', 'numeric'],
+            'sellPrice1' => ['nullable', 'numeric'],
 
-            'sell_price_2' => ['nullable', 'numeric'],
+            'sellPrice2' => ['nullable', 'numeric'],
 
             /*
             |--------------------------------------------------------------------------
@@ -92,9 +135,9 @@ class ProductController extends Controller
 
             'marge' => ['nullable', 'numeric'],
 
-            'marge_1' => ['nullable', 'numeric'],
+            'marge1' => ['nullable', 'numeric'],
 
-            'marge_2' => ['nullable', 'numeric'],
+            'marge2' => ['nullable', 'numeric'],
 
             'ttc' => ['nullable', 'numeric'],
 
@@ -106,7 +149,7 @@ class ProductController extends Controller
 
             'stock' => ['nullable', 'numeric'],
 
-            'stock_value' => ['nullable', 'numeric'],
+            'stockValue' => ['nullable', 'numeric'],
 
             'alert' => ['nullable', 'numeric'],
 
@@ -118,9 +161,9 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'fab_date' => ['nullable', 'date'],
+            'fabDate' => ['nullable', 'date'],
 
-            'per_date' => ['nullable', 'date'],
+            'perDate' => ['nullable', 'date'],
 
             /*
             |--------------------------------------------------------------------------
@@ -128,11 +171,14 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'brand_id' => [
+            'brandId' => [
                 'nullable',
                 'uuid',
                 'exists:brands,id'
             ],
+
+            'deletedAt' => ['nullable', 'numeric'],
+
 
             'categories' => ['nullable', 'array'],
 
@@ -158,7 +204,7 @@ class ProductController extends Controller
             'data' => ['nullable', 'array'],
         ]);
 
-        $validated['created_by'] = auth()->id();
+        $validated['createdBy'] = auth()->id();
 
         $product = Product::create(
 
@@ -201,7 +247,6 @@ class ProductController extends Controller
                 'media',
                 'brand',
                 'categories',
-                'createdBy',
             ])
         );
     }
@@ -215,9 +260,7 @@ class ProductController extends Controller
             $product->load([
                 'media',
                 'brand',
-                'categories',
-                'createdBy',
-                'updatedBy',
+                'categories'
             ])
         );
     }
@@ -227,7 +270,11 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+
+
         $validated = $request->validate([
+
+            'id' =>['uuid'],
 
             /*
             |--------------------------------------------------------------------------
@@ -237,7 +284,7 @@ class ProductController extends Controller
 
             'name' => ['sometimes', 'required', 'string', 'max:255'],
 
-            'name_ar' => ['nullable', 'string', 'max:255'],
+            'nameAr' => ['nullable', 'string', 'max:255'],
 
             'description' => ['nullable', 'string'],
 
@@ -253,11 +300,11 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'is_integer' => ['nullable', 'boolean'],
+            'isInteger' => ['nullable', 'boolean'],
 
-            'is_online' => ['nullable', 'boolean'],
+            'isOnline' => ['nullable', 'boolean'],
 
-            'input_price' => ['nullable', 'boolean'],
+            'inputPrice' => ['nullable', 'boolean'],
 
             /*
             |--------------------------------------------------------------------------
@@ -265,13 +312,15 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'buy_price' => ['nullable', 'numeric'],
+            'buyPrice' => ['nullable', 'numeric'],
 
-            'sell_price' => ['nullable', 'numeric'],
+            'sellPrice' => ['nullable', 'numeric'],
 
-            'sell_price_1' => ['nullable', 'numeric'],
+            'sellPrice1' => ['nullable', 'numeric'],
 
-            'sell_price_2' => ['nullable', 'numeric'],
+            'sellPrice2' => ['nullable', 'numeric'],
+
+            'deletedAt' => ['nullable', 'numeric'],
 
             /*
             |--------------------------------------------------------------------------
@@ -283,9 +332,9 @@ class ProductController extends Controller
 
             'marge' => ['nullable', 'numeric'],
 
-            'marge_1' => ['nullable', 'numeric'],
+            'marge1' => ['nullable', 'numeric'],
 
-            'marge_2' => ['nullable', 'numeric'],
+            'marge2' => ['nullable', 'numeric'],
 
             'ttc' => ['nullable', 'numeric'],
 
@@ -297,7 +346,7 @@ class ProductController extends Controller
 
             'stock' => ['nullable', 'numeric'],
 
-            'stock_value' => ['nullable', 'numeric'],
+            'stockValue' => ['nullable', 'numeric'],
 
             'alert' => ['nullable', 'numeric'],
 
@@ -309,9 +358,9 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'fab_date' => ['nullable', 'date'],
+            'fabDate' => ['nullable', 'date'],
 
-            'per_date' => ['nullable', 'date'],
+            'perDate' => ['nullable', 'date'],
 
             /*
             |--------------------------------------------------------------------------
@@ -319,7 +368,7 @@ class ProductController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            'brand_id' => [
+            'brandId' => [
                 'nullable',
                 'uuid',
                 'exists:brands,id'
@@ -349,7 +398,7 @@ class ProductController extends Controller
             'data' => ['nullable', 'array'],
         ]);
 
-        $validated['updated_by'] = auth()->id();
+        $validated['updatedBy'] = auth()->id();
 
         $product->update(
 
@@ -389,13 +438,12 @@ class ProductController extends Controller
                 ->toMediaCollection('product', 'public');
         }
 
+
         return new ProductResource(
             $product->load([
                 'media',
                 'brand',
-                'categories',
-                'createdBy',
-                'updatedBy',
+                'categories'
             ])
         );
     }
@@ -406,7 +454,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
          $product->update([
-            'deleted_by' => auth()->id(),
+            'deletedBy' => auth()->id(),
         ]);
 
         $product->delete();

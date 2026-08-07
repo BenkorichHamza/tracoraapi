@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -23,11 +24,11 @@ return new class extends Migration
 
             $table->string('type')->nullable();
 
-            $table->string('first_name')->nullable();
+            $table->string('firstName')->nullable();
 
-            $table->string('last_name')->nullable();
+            $table->string('lastName')->nullable();
 
-            $table->string('company_name')->nullable();
+            $table->string('companyName')->nullable();
 
             /*
             |--------------------------------------------------------------------------
@@ -47,11 +48,17 @@ return new class extends Migration
 
             $table->string('phone')->nullable();
 
+            $table->string('email')->nullable();
+
             $table->string('fax')->nullable();
 
             $table->string('fix')->nullable();
 
             $table->string('code')->nullable();
+
+            $table->integer('createdAt')->nullable();
+            $table->integer('updatedAt')->nullable();
+            $table->integer('deletedAt')->nullable();
 
             /*
             |--------------------------------------------------------------------------
@@ -81,14 +88,16 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->foreignUuidFor(User::class, 'created_by')
+            $table->foreignUuidFor(User::class, 'createdBy')
                 ->nullable();
 
-            $table->foreignUuidFor(User::class, 'updated_by')
+            $table->foreignUuidFor(User::class, 'updatedBy')
                 ->nullable();
 
-            $table->foreignUuidFor(User::class, 'deleted_by')
+            $table->foreignUuidFor(User::class, 'deletedBy')
                 ->nullable();
+
+
 
             /*
             |--------------------------------------------------------------------------

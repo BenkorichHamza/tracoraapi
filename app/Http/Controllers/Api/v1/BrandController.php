@@ -26,8 +26,10 @@ class BrandController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'name_ar' => ['nullable', 'string', 'max:255'],
+            'nameAr' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
         $validated['created_by'] = auth()->id();
@@ -41,7 +43,7 @@ class BrandController extends Controller
                 ->toMediaCollection('brand');
         }
 
-        return new BrandResource($brand->load('createdBy', 'updatedBy', 'deletedBy', 'media'));
+        return new BrandResource($brand->load('media'));
     }
 
     /**
@@ -49,7 +51,7 @@ class BrandController extends Controller
      */
     public function show(Brand $brand)
     {
-        return new BrandResource($brand->load(['createdBy', 'updatedBy', 'deletedBy', 'media']));
+        return new BrandResource($brand->load(['media']));
     }
 
     /**
@@ -61,6 +63,8 @@ class BrandController extends Controller
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'name_ar' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'deletedAt' => ['nullable', 'numeric'],
+
         ]);
 
         $validated['updated_by'] = auth()->id();
@@ -75,7 +79,7 @@ class BrandController extends Controller
                 ->toMediaCollection('brand');
         }
 
-        return new BrandResource($brand->load(['createdBy', 'updatedBy', 'deletedBy', 'media']));
+        return new BrandResource($brand->load(['media']));
     }
 
     /**
