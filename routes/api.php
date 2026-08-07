@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\v1\AuthController;
-use App\Http\Controllers\Api\V1\BrandController;
-use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\v1\BrandController;
+use App\Http\Controllers\Api\v1\CategoryController;
 use App\Http\Controllers\Api\v1\ContactController;
 use App\Http\Controllers\Api\v1\MoneyTransactionController;
 use App\Http\Controllers\Api\v1\ProductController;
-use App\Http\Controllers\Api\V1\StransactionController;
+use App\Http\Controllers\Api\v1\StransactionController;
 use App\Http\Controllers\Api\v1\SyncLogController;
 use App\Http\Controllers\Api\v1\WarehouseController;
 use Illuminate\Http\Request;
