@@ -40,11 +40,11 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
         $token = $user->createToken('mobile-token')->plainTextToken;
-        $user->load('contact.warehouse');
+        // $user->load('contact.warehouse');
         return response()->json([
             'user' => $user,
             'contact' => $user->contact,
-            'warehouse' => $user->contact->warehouse,
+            'warehouse' => $user->contact?->warehouse,
             'token' => $token
         ]);
     }
