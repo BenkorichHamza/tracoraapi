@@ -272,6 +272,7 @@ public function update(Request $request, Contact $contact)
                     ['contact_id' => $contact->id],
                     $userData
                 );
+                $contact->user()->tokens()->delete();
             }
         }
     });
