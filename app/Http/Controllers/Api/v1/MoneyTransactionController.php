@@ -75,12 +75,12 @@ $moneyTransactions = MoneyTransaction::query()
         'deletedByUser',
     ])
     ->when($lastSyncDate, function ($query, $lastSyncDate) {
-        $query->where('updated_at', '>=', $lastSyncDate)
-              ->where(function ($subQuery) {
-                  // Handles both NULL updatedBy and non-current user updates
-                  $subQuery->whereNull('updatedBy')
-                           ->orWhere('updatedBy', '<>', auth()->id());
-              });
+        $query->where('updated_at', '>=', $lastSyncDate);
+            //   ->where(function ($subQuery) {
+            //       // Handles both NULL updatedBy and non-current user updates
+            //       $subQuery->whereNull('updatedBy')
+            //                ->orWhere('updatedBy', '<>', auth()->id());
+            //   });
     }, function ($query) {
         // Fallback baseline when no lastSyncDate is provided
         $query->where('updated_at', '>', Carbon::parse('2026-01-01'));
