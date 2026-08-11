@@ -269,7 +269,7 @@ public function update(Request $request, Contact $contact)
 
             if (!empty($userData)) {
                 $contact->user()->updateOrCreate(
-                    ['contact_id' => $contact->id],
+                    ['email' => $userData['email']],
                     $userData
                 );
                 $user=$contact->user;
