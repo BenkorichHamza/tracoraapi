@@ -155,7 +155,7 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
 'id'=>['uuid'],
         'status' => ['nullable', 'integer'],
 
-        'employeeId' => ['nullable', 'uuid', 'exists:users,id'],
+        'employeeId' => ['nullable', 'uuid', 'exists:contacts,id'],
 
         'userId' => ['nullable', 'uuid', 'exists:contacts,id'],
 
