@@ -132,7 +132,9 @@ return ContactResource::collection($products);
 
         // 2. If it's an employee, create the User record pointing to this contact_id
         if ($request->type === 'employee') {
-            $user = User::create([
+            $user = User::updateOrCreate(
+                ["id" => $contact->user()->id],
+                [
                 'contact_id' => $contact->id, // Linking the user to the contact
                 'name'       => trim(($validated['firstName'] ?? '') . ' ' . ($validated['lastName'] ?? '')),
                 'email'      => $validated['email'],
