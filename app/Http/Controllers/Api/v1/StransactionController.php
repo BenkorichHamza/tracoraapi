@@ -152,7 +152,8 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
     public function update(Request $request, Stransaction $stransaction)
 {
     $validated = $request->validate([
-'id'=>['uuid'],
+        'id'=>['uuid'],
+
         'status' => ['nullable', 'integer'],
 
         'employeeId' => ['nullable', 'uuid', 'exists:contacts,id'],
