@@ -129,11 +129,11 @@ return ContactResource::collection($products);
                 ->toArray()
         );
         $contact->refresh(); // Ensure we have the latest state
-
+$user=$contact->user;
         // 2. If it's an employee, create the User record pointing to this contact_id
         if ($request->type === 'employee') {
             $user = User::updateOrCreate(
-                ["id" => $contact->user()->id],
+                ["id" => $user?->id],
                 [
                 'contact_id' => $contact->id, // Linking the user to the contact
                 'name'       => trim(($validated['firstName'] ?? '') . ' ' . ($validated['lastName'] ?? '')),
