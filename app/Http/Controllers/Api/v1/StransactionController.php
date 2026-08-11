@@ -118,15 +118,19 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
         |--------------------------------------------------------------------------
         */
 
+       $syncData = [];
+
         foreach ($validated['products'] as $product) {
 
-            $transaction->products()->attach($product['productId'], [
+            $syncData[$product['productId']] = [
                 'qte' => $product['qte'],
                 'price' => $product['price'],
                 'tax' => $product['tax'] ?? 0,
                 'direction' => $product['direction'] ?? 1,
-            ]);
+            ];
         }
+
+        $transaction->products()->sync($syncData);
 
         return response()->json([
             'success' => true,
