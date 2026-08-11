@@ -105,7 +105,9 @@ $stransactions = Stransaction::query()
         ]);
 
 $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ?? now()->getTimestampMs())->setTimezone(config('app.timezone'));
-        $transaction = Stransaction::create([
+        $transaction = Stransaction::updateOrCreate([
+            'id' => $validated['id']
+        ], [
             ...collect($validated)->except('products')->toArray(),
             'createdBy' => auth()->id(),
         ]);
