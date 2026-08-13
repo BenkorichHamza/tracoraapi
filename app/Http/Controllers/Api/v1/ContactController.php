@@ -72,7 +72,7 @@ return ContactResource::collection($products);
     {
     $validated = $request->validate([
         // Ensure we explicitly validate the incoming UUID
-        'id'          => ['required', 'uuid'],
+        'id'          => ['required', 'uuid', 'unique:contacts,id'],
         'type'        => ['nullable', 'string'],
         'firstName'   => ['nullable', 'string', 'max:255'],
         'lastName'    => ['nullable', 'string', 'max:255'],
@@ -98,7 +98,9 @@ return ContactResource::collection($products);
         'email'       => [
             Rule::requiredIf($request->type === 'employee'),
             'nullable',
-            'email'        ],
+            'email',
+            Rule::unique('users', 'email')
+        ],
 
         // Password is only required for employees
         'password'    => [
@@ -120,19 +122,16 @@ return ContactResource::collection($products);
         $validated['createdBy'] = auth()->id();
 
         // 1. Create the Contact first (with the client-side UUID)
-        $contact = Contact::updateOrCreate(
-            ["id"=>$validated["id"]],
+        $contact = Contact::create(
             collect($validated)
                 ->except(['image', 'password'])
                 ->toArray()
         );
         $contact->refresh(); // Ensure we have the latest state
-$user=$contact->user;
+
         // 2. If it's an employee, create the User record pointing to this contact_id
         if ($request->type === 'employee') {
-            $user = User::updateOrCreate(
-                ["id" => $user?->id],
-                [
+            $user = User::create([
                 'contact_id' => $contact->id, // Linking the user to the contact
                 'name'       => trim(($validated['firstName'] ?? '') . ' ' . ($validated['lastName'] ?? '')),
                 'email'      => $validated['email'],
@@ -270,7 +269,7 @@ public function update(Request $request, Contact $contact)
 
             if (!empty($userData)) {
                 $contact->user()->updateOrCreate(
-                    ['email' => $userData['email']],
+                    ['contact_id' => $contact->id],
                     $userData
                 );
                 $user=$contact->user;
