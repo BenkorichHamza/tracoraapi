@@ -16,7 +16,7 @@ return new class extends Migration
              $table->foreignUuidFor(Warehouse::class)
                 ->nullable()->after('email');
         });
-        
+
     }
 
     /**
