@@ -23,10 +23,11 @@ $lastSyncDate = is_numeric($lastSyncMs) && (int)$lastSyncMs > 0
     ? Carbon::createFromTimestampMs((int) $lastSyncMs)
     : null;
 
-$products = Contact::query()
+$contacts = Contact::query()
     ->with([
         'media',
         'warehouse',
+        'user.roles.permissions',
         'createdByUser',
         'updatedByUser',
         'deletedByUser',
@@ -45,7 +46,7 @@ $products = Contact::query()
     ->latest('updated_at')
     ->get();
 
-return ContactResource::collection($products);
+return ContactResource::collection($contacts);
 }
     /**
      * Display a listing of the resource.
@@ -53,7 +54,7 @@ return ContactResource::collection($products);
     public function index()
     {
         return ContactResource::collection(
-            Contact::with(['user'])->latest()->paginate(20)
+            Contact::with(['user.roles.permissions'])->latest()->paginate(20)
          );
     }
 

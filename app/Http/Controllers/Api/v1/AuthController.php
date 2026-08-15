@@ -34,7 +34,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $user = User::where('email', $request->email)->with("contact")->first();
+        $user = User::where('email', $request->email)->with("contact","roles.permissions")->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
