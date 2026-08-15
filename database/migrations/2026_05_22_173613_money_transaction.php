@@ -66,9 +66,9 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->integer('createdAt')->nullable();
-            $table->integer('updatedAt')->nullable();
-            $table->integer('deletedAt')->nullable();
+            $table->bigInteger('createdAt')->nullable();
+            $table->bigInteger('updatedAt')->nullable();
+            $table->bigInteger('deletedAt')->nullable();
 
             $table->foreignUuidFor(User::class, 'createdBy')->nullable();
 
