@@ -128,9 +128,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'money_transactions.create',
             'money_transactions.read',
 
-            // Sales
-            'sales.cancel',
-            'sales.discount',
+
         ];
 
         $seller->syncPermissions(
