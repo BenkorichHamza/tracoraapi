@@ -169,9 +169,6 @@ class RolesAndPermissionsSeeder extends Seeder
             // Money
             'money_transactions.create',
             'money_transactions.read',
-
-            // Purchases
-            'purchases.cancel',
         ];
 
         $buyer->syncPermissions(
