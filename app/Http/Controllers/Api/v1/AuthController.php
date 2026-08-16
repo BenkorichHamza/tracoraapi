@@ -7,6 +7,7 @@ use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -40,11 +41,13 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
         $token = $user->createToken('mobile-token')->plainTextToken;
+        $roles = Role::with('permissions')->get();
         // $user->load('contact.warehouse');
         return response()->json([
             'user' => $user,
             'contact' => $user->contact,
             'warehouse' => $user->contact?->warehouse,
+            'roles' => $roles,
             'token' => $token
         ]);
     }

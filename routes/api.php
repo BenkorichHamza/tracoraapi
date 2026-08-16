@@ -17,6 +17,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
+    Routes::get('/roles', [AuthController::class, 'roles']);
+
     // PROTECTED ROUTES
     Route::middleware('auth:sanctum')->group(function () {
 
