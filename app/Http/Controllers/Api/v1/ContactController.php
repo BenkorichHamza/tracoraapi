@@ -219,6 +219,7 @@ public function update(Request $request, Contact $contact)
         'fix' => ['nullable', 'string'],
         'code' => ['nullable', 'string'],
         'deletedAt' => ['nullable', 'numeric'],
+        'roles' =>['nullable', 'exists:roles,id'],
 
 
         /*
@@ -253,6 +254,12 @@ public function update(Request $request, Contact $contact)
         $contact->update(
             collect($validated)->except(['image', 'password'])->toArray()
         );
+        if($validated['roles']){
+            var $u = $contact->user();
+            if($u){
+                $u->roles->sync($validated["roles"]);
+            }
+        }
 
         // 2. Handle image upload via Spatie Media Library
         if ($request->hasFile('image')) {
