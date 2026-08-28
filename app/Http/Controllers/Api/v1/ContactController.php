@@ -211,6 +211,7 @@ public function update(Request $request, Contact $contact)
         | Contact
         |--------------------------------------------------------------------------
         */
+
         'address' => ['nullable', 'string'],
         'phone' => ['nullable', 'string'],
         'email' => ['nullable', 'email'],
