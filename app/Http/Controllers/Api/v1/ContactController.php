@@ -220,7 +220,8 @@ public function update(Request $request, Contact $contact)
         'fix' => ['nullable', 'string'],
         'code' => ['nullable', 'string'],
         'deletedAt' => ['nullable', 'numeric'],
-        'roles' =>['nullable','integer', 'exists:roles,id'],
+        'roles' =>['nullable','array'],
+        'roles.*' => ['required', 'integer', 'exists:roles,id'],
 
 
         /*
