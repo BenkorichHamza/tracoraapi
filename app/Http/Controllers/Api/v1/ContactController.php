@@ -255,7 +255,7 @@ public function update(Request $request, Contact $contact)
             collect($validated)->except(['image', 'password'])->toArray()
         );
         if($validated['roles']){
-            var $u = $contact->user();
+             $u = $contact->user();
             if($u){
                 $u->roles->sync($validated["roles"]);
             }
