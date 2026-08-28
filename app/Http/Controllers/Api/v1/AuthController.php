@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\RoleResource;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -101,6 +102,11 @@ public function unlinkContact(User $user)
         'message' => 'User unlinked from contact successfully',
         'data' => $user->load('contact') // will be null
     ]);
+}
+
+public function roles(){
+    return
+    RoleResource::collection(Role::with("permissions")->get());
 }
 
 }

@@ -16,7 +16,6 @@ Route::prefix('v1')->group(function () {
     // AUTH (public)
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-
     Route::get('/roles', [AuthController::class, 'roles']);
 
     // PROTECTED ROUTES
