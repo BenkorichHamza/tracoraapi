@@ -74,7 +74,7 @@ class ContactController extends Controller
     {
         $validated = $request->validate([
             // Ensure we explicitly validate the incoming UUID
-            'id' => ['required', 'uuid', 'unique:contacts,id'],
+            'id' => ['required', 'uuid'],
             'type' => ['nullable', 'string'],
             'firstName' => ['nullable', 'string', 'max:255'],
             'lastName' => ['nullable', 'string', 'max:255'],
@@ -102,7 +102,7 @@ class ContactController extends Controller
                 Rule::requiredIf($request->type === 'employee'),
                 'nullable',
                 'email',
-                Rule::unique('users', 'email'),
+                // Rule::unique('users', 'email'),
             ],
 
             // Password is only required for employees
