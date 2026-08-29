@@ -74,7 +74,7 @@ class ContactController extends Controller
     {
         $validated = $request->validate([
             // Ensure we explicitly validate the incoming UUID
-            'id' => ['required', 'uuid'],
+            'id' => ['required', 'uuid', 'unique:contacts,id'],
             'type' => ['nullable', 'string'],
             'firstName' => ['nullable', 'string', 'max:255'],
             'lastName' => ['nullable', 'string', 'max:255'],
@@ -102,7 +102,7 @@ class ContactController extends Controller
                 Rule::requiredIf($request->type === 'employee'),
                 'nullable',
                 'email',
-                // Rule::unique('users', 'email'),
+                Rule::unique('users', 'email'),
             ],
 
             // Password is only required for employees
@@ -125,8 +125,7 @@ class ContactController extends Controller
             $validated['createdBy'] = auth()->id();
 
             // 1. Create the Contact first (with the client-side UUID)
-            $contact = Contact::updateOrCreate(
-                ['id'=>$validated["id"]],
+            $contact = Contact::create(
                 collect($validated)
                     ->except(['image', 'password',"roles"])
                     ->toArray()
@@ -135,9 +134,7 @@ class ContactController extends Controller
 
             // 2. If it's an employee, create the User record pointing to this contact_id
             if ($request->type === 'employee') {
-                $user = User::updateOrCreate(
-                    ['contact_id' => $contact->id],
-                    [
+                $user = User::create([
                     'contact_id' => $contact->id, // Linking the user to the contact
                     'name' => trim(($validated['firstName'] ?? '').' '.($validated['lastName'] ?? '')),
                     'email' => $validated['email'],
