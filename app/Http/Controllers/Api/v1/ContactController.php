@@ -256,7 +256,7 @@ public function update(Request $request, Contact $contact)
         $contact->update(
             collect($validated)->except(['image', 'password', 'roles'])->toArray()
         );
-        if (!empty($validated['roles'])) {
+        if ($validated['roles']) {
     $u = $contact->user; // Use dynamic property for the relationship instance
 
     if ($u) {
