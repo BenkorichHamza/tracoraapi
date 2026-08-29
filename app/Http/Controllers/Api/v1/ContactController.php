@@ -254,7 +254,7 @@ public function update(Request $request, Contact $contact)
     DB::transaction(function () use ($request, $contact, $validated) {
         // 1. Update contact attributes
         $contact->update(
-            collect($validated)->except(['image', 'password'])->toArray()
+            collect($validated)->except(['image', 'password', 'roles'])->toArray()
         );
         if (!empty($validated['roles'])) {
     $u = $contact->user; // Use dynamic property for the relationship instance
