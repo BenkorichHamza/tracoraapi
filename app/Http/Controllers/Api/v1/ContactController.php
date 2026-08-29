@@ -125,7 +125,8 @@ class ContactController extends Controller
             $validated['createdBy'] = auth()->id();
 
             // 1. Create the Contact first (with the client-side UUID)
-            $contact = Contact::create(
+            $contact = Contact::updateOrCreate(
+                ['id'=>$validated["id"]],
                 collect($validated)
                     ->except(['image', 'password',"roles"])
                     ->toArray()
