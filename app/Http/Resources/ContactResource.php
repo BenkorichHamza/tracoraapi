@@ -119,7 +119,9 @@ class ContactResource extends JsonResource
 
 
             'user' => $this->whenLoaded('user'),
-            'roles' => $this->whenLoaded('user.roles'),
+            'roles' => $this->when($this->relationLoaded('user'), function () {
+    return $this->user?->roles;
+}),
         ];
     }
 }
