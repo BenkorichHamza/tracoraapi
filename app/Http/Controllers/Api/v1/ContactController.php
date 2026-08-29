@@ -8,46 +8,47 @@ use App\Models\Contact;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class ContactController extends Controller
 {
     public function sync(Request $request)
-{
-    // Validate and cast timestamp safely
-$lastSyncMs = $request->input('last_sync_date');
+    {
+        // Validate and cast timestamp safely
+        $lastSyncMs = $request->input('last_sync_date');
 
-$lastSyncDate = is_numeric($lastSyncMs) && (int)$lastSyncMs > 0
-    ? Carbon::createFromTimestampMs((int) $lastSyncMs)
-    : null;
+        $lastSyncDate = is_numeric($lastSyncMs) && (int) $lastSyncMs > 0
+            ? Carbon::createFromTimestampMs((int) $lastSyncMs)
+            : null;
 
-$contacts = Contact::query()
-    ->with([
-        'media',
-        'warehouse',
-        'user.roles',
-        'createdByUser',
-        'updatedByUser',
-        'deletedByUser',
-    ])
-    ->when($lastSyncDate, function ($query, $lastSyncDate) {
-        $query->where('updated_at', '>=', $lastSyncDate);
-            //   ->where(function ($subQuery) {
-            //       // Handles both NULL updatedBy and non-current user updates
-            //       $subQuery->whereNull('updatedBy')
-            //                ->orWhere('updatedBy', '<>', auth()->id());
-            //   });
-    }, function ($query) {
-        // Fallback baseline when no lastSyncDate is provided
-        $query->where('updated_at', '>', Carbon::parse('2026-01-01'));
-    })
-    ->latest('updated_at')
-    ->get();
+        $contacts = Contact::query()
+            ->with([
+                'media',
+                'warehouse',
+                'user.roles',
+                'createdByUser',
+                'updatedByUser',
+                'deletedByUser',
+            ])
+            ->when($lastSyncDate, function ($query, $lastSyncDate) {
+                $query->where('updated_at', '>=', $lastSyncDate);
+                //   ->where(function ($subQuery) {
+                //       // Handles both NULL updatedBy and non-current user updates
+                //       $subQuery->whereNull('updatedBy')
+                //                ->orWhere('updatedBy', '<>', auth()->id());
+                //   });
+            }, function ($query) {
+                // Fallback baseline when no lastSyncDate is provided
+                $query->where('updated_at', '>', Carbon::parse('2026-01-01'));
+            })
+            ->latest('updated_at')
+            ->get();
 
-return ContactResource::collection($contacts);
-}
+        return ContactResource::collection($contacts);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -55,7 +56,7 @@ return ContactResource::collection($contacts);
     {
         return ContactResource::collection(
             Contact::with(['user.roles.permissions'])->latest()->paginate(20)
-         );
+        );
     }
 
     /**
@@ -71,104 +72,103 @@ return ContactResource::collection($contacts);
      */
     public function store(Request $request)
     {
-    $validated = $request->validate([
-        // Ensure we explicitly validate the incoming UUID
-        'id'          => ['required', 'uuid', 'unique:contacts,id'],
-        'type'        => ['nullable', 'string'],
-        'firstName'   => ['nullable', 'string', 'max:255'],
-        'lastName'    => ['nullable', 'string', 'max:255'],
-        'companyName' => ['nullable', 'string', 'max:255'],
-        'warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+        $validated = $request->validate([
+            // Ensure we explicitly validate the incoming UUID
+            'id' => ['required', 'uuid', 'unique:contacts,id'],
+            'type' => ['nullable', 'string'],
+            'firstName' => ['nullable', 'string', 'max:255'],
+            'lastName' => ['nullable', 'string', 'max:255'],
+            'companyName' => ['nullable', 'string', 'max:255'],
+            'warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
 
-        'address'     => ['nullable', 'string'],
-        'phone'       => ['nullable', 'string'],
-        'fax'         => ['nullable', 'string'],
-        'fix'         => ['nullable', 'string'],
-        'code'        => ['nullable', 'string'],
+            'address' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string'],
+            'fax' => ['nullable', 'string'],
+            'fix' => ['nullable', 'string'],
+            'code' => ['nullable', 'string'],
 
-        'due'         => ['nullable', 'numeric'],
-        'payment'     => ['nullable', 'numeric'],
+            'due' => ['nullable', 'numeric'],
+            'payment' => ['nullable', 'numeric'],
 
-        'nif'         => ['nullable', 'string'],
-        'nis'         => ['nullable', 'string'],
-        'nin'         => ['nullable', 'string'],
-        'deletedAt' => ['nullable', 'numeric'],
-        'roles' =>['nullable','array'],
-        'roles.*' => ['required', 'integer', 'exists:roles,id'],
+            'nif' => ['nullable', 'string'],
+            'nis' => ['nullable', 'string'],
+            'nin' => ['nullable', 'string'],
+            'deletedAt' => ['nullable', 'numeric'],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['required', 'integer', 'exists:roles,id'],
 
+            // Email is mandatory and must be unique only if type is employee
+            'email' => [
+                Rule::requiredIf($request->type === 'employee'),
+                'nullable',
+                'email',
+                Rule::unique('users', 'email'),
+            ],
 
+            // Password is only required for employees
+            'password' => [
+                Rule::requiredIf($request->type === 'employee'),
+                'nullable',
+                'string',
+                'min:6',
+            ],
 
-        // Email is mandatory and must be unique only if type is employee
-        'email'       => [
-            Rule::requiredIf($request->type === 'employee'),
-            'nullable',
-            'email',
-            Rule::unique('users', 'email')
-        ],
-
-        // Password is only required for employees
-        'password'    => [
-            Rule::requiredIf($request->type === 'employee'),
-            'nullable',
-            'string',
-            'min:6'
-        ],
-
-        'data'        => ['nullable', 'array'],
-        'image'       => ['nullable', 'image', 'max:5120'],
-    ]);
-
-    $token = null;
-
-    // Wrap in a transaction to protect data integrity
-    $contact = DB::transaction(function () use ($request, $validated, &$token) {
-
-        $validated['createdBy'] = auth()->id();
-
-        // 1. Create the Contact first (with the client-side UUID)
-        $contact = Contact::create(
-            collect($validated)
-                ->except(['image', 'password'])
-                ->toArray()
-        );
-        $contact->refresh(); // Ensure we have the latest state
-
-        // 2. If it's an employee, create the User record pointing to this contact_id
-        if ($request->type === 'employee') {
-            $user = User::create([
-                'contact_id' => $contact->id, // Linking the user to the contact
-                'name'       => trim(($validated['firstName'] ?? '') . ' ' . ($validated['lastName'] ?? '')),
-                'email'      => $validated['email'],
-                'password'   => Hash::make($validated['password']),
-            ]);
-
-            // Issue the Sanctum token
-            $token = $user->createToken('employee-auth-token')->plainTextToken;
-        }
-
-        // 3. Handle Media Library file attachment
-        if ($request->hasFile('image')) {
-            $contact->addMediaFromRequest('image')->toMediaCollection('contact');
-        }
-         if (isset($validated['roles'])) {
-    $u = $contact->user; // Use dynamic property for the relationship instance
-
-    if ($u) {
-        $u->syncRoles($validated['roles']);
-    }
-
-        return $contact;
-    });
-
-    // 4. Return the resource. If you have a 'user' relationship on Contact,
-    // make sure it's defined as a hasOne() or hasMany() pointing to the User model.
-    return (new ContactResource($contact->load(['user', 'media'])))
-        ->additional([
-            'meta' => [
-                'token' => $token // Returns token string for employees, null for others
-            ]
+            'data' => ['nullable', 'array'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
-}
+
+        $token = null;
+
+        // Wrap in a transaction to protect data integrity
+        $contact = DB::transaction(function () use ($request, $validated, &$token) {
+
+            $validated['createdBy'] = auth()->id();
+
+            // 1. Create the Contact first (with the client-side UUID)
+            $contact = Contact::create(
+                collect($validated)
+                    ->except(['image', 'password'])
+                    ->toArray()
+            );
+            $contact->refresh(); // Ensure we have the latest state
+
+            // 2. If it's an employee, create the User record pointing to this contact_id
+            if ($request->type === 'employee') {
+                $user = User::create([
+                    'contact_id' => $contact->id, // Linking the user to the contact
+                    'name' => trim(($validated['firstName'] ?? '').' '.($validated['lastName'] ?? '')),
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]);
+
+                // Issue the Sanctum token
+                $token = $user->createToken('employee-auth-token')->plainTextToken;
+            }
+
+            // 3. Handle Media Library file attachment
+            if ($request->hasFile('image')) {
+                $contact->addMediaFromRequest('image')->toMediaCollection('contact');
+            }
+            if (isset($validated['roles'])) {
+                $u = $contact->user; // Use dynamic property for the relationship instance
+
+                if ($u) {
+                    $u->syncRoles($validated['roles']);
+                }
+            }
+
+            return $contact;
+        });
+
+        // 4. Return the resource. If you have a 'user' relationship on Contact,
+        // make sure it's defined as a hasOne() or hasMany() pointing to the User model.
+        return (new ContactResource($contact->load(['user', 'media'])))
+            ->additional([
+                'meta' => [
+                    'token' => $token, // Returns token string for employees, null for others
+                ],
+            ]);
+    }
 
     /**
      * Display the specified resource.
@@ -177,7 +177,7 @@ return ContactResource::collection($contacts);
     {
         return new ContactResource(
             $contact->load([
-                'user'
+                'user',
             ])
         );
     }
@@ -193,114 +193,110 @@ return ContactResource::collection($contacts);
     /**
      * Update the specified resource in storage.
      */
+    public function update(Request $request, Contact $contact)
+    {
+        $validated = $request->validate([
+            /*
+            |--------------------------------------------------------------------------
+            | Basic Information
+            |--------------------------------------------------------------------------
+            */
+            'type' => ['nullable', 'string'],
+            'firstName' => ['nullable', 'string', 'max:255'],
+            'lastName' => ['nullable', 'string', 'max:255'],
+            'companyName' => ['nullable', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:5120'],
+            'password' => [
+                Rule::requiredIf($request->type === 'employee' && ! $contact->user),
+                'nullable',
+                'string',
+                'min:6',
+            ],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Contact
+            |--------------------------------------------------------------------------
+            */
 
-public function update(Request $request, Contact $contact)
-{
-    $validated = $request->validate([
-        /*
-        |--------------------------------------------------------------------------
-        | Basic Information
-        |--------------------------------------------------------------------------
-        */
-        'type' => ['nullable', 'string'],
-        'firstName' => ['nullable', 'string', 'max:255'],
-        'lastName' => ['nullable', 'string', 'max:255'],
-        'companyName' => ['nullable', 'string', 'max:255'],
-        'image' => ['nullable', 'image', 'max:5120'],
-        'password' => [
-            Rule::requiredIf($request->type === 'employee' && !$contact->user),
-            'nullable',
-            'string',
-            'min:6'
-        ],
+            'address' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string'],
+            'email' => ['nullable', 'email'],
+            'warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
+            'fax' => ['nullable', 'string'],
+            'fix' => ['nullable', 'string'],
+            'code' => ['nullable', 'string'],
+            'deletedAt' => ['nullable', 'numeric'],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['required', 'integer', 'exists:roles,id'],
 
-        /*
-        |--------------------------------------------------------------------------
-        | Contact
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Financial
+            |--------------------------------------------------------------------------
+            */
+            'due' => ['nullable', 'numeric'],
+            'payment' => ['nullable', 'numeric'],
 
-        'address' => ['nullable', 'string'],
-        'phone' => ['nullable', 'string'],
-        'email' => ['nullable', 'email'],
-        'warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
-        'fax' => ['nullable', 'string'],
-        'fix' => ['nullable', 'string'],
-        'code' => ['nullable', 'string'],
-        'deletedAt' => ['nullable', 'numeric'],
-        'roles' =>['nullable','array'],
-        'roles.*' => ['required', 'integer', 'exists:roles,id'],
+            /*
+            |--------------------------------------------------------------------------
+            | Algerian Identifiers
+            |--------------------------------------------------------------------------
+            */
+            'nif' => ['nullable', 'string'],
+            'nis' => ['nullable', 'string'],
+            'nin' => ['nullable', 'string'],
 
+            /*
+            |--------------------------------------------------------------------------
+            | Extra Data
+            |--------------------------------------------------------------------------
+            */
+            'data' => ['nullable', 'array'],
+        ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Financial
-        |--------------------------------------------------------------------------
-        */
-        'due' => ['nullable', 'numeric'],
-        'payment' => ['nullable', 'numeric'],
+        $validated['updatedBy'] = auth()->id();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Algerian Identifiers
-        |--------------------------------------------------------------------------
-        */
-        'nif' => ['nullable', 'string'],
-        'nis' => ['nullable', 'string'],
-        'nin' => ['nullable', 'string'],
+        DB::transaction(function () use ($request, $contact, $validated) {
+            // 1. Update contact attributes
+            $contact->update(
+                collect($validated)->except(['image', 'password', 'roles'])->toArray()
+            );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Extra Data
-        |--------------------------------------------------------------------------
-        */
-        'data' => ['nullable', 'array'],
-    ]);
+            // 2. Handle image upload via Spatie Media Library
+            if ($request->hasFile('image')) {
+                $contact->clearMediaCollection('contact');
+                $contact->addMediaFromRequest('image')
+                    ->toMediaCollection('contact');
+            }
 
-    $validated['updatedBy'] = auth()->id();
+            // 3. Handle Employee User record creation/update
+            if ($request->type === 'employee') {
+                $userData = array_filter([
+                    'email' => $validated['email'] ?? null,
+                    'password' => ! empty($validated['password']) ? Hash::make($validated['password']) : null,
+                ]);
 
-    DB::transaction(function () use ($request, $contact, $validated) {
-        // 1. Update contact attributes
-        $contact->update(
-            collect($validated)->except(['image', 'password', 'roles'])->toArray()
-        );
+                if (! empty($userData)) {
+                    $contact->user()->updateOrCreate(
+                        ['contact_id' => $contact->id],
+                        $userData
+                    );
+                    $user = $contact->user;
+                    $user?->tokens()->delete();
+                }
+            }
+        });
+        if (isset($validated['roles'])) {
+            $u = $contact->user; // Use dynamic property for the relationship instance
 
-}
-
-        // 2. Handle image upload via Spatie Media Library
-        if ($request->hasFile('image')) {
-            $contact->clearMediaCollection('contact');
-            $contact->addMediaFromRequest('image')
-                ->toMediaCollection('contact');
-        }
-
-        // 3. Handle Employee User record creation/update
-        if ($request->type === 'employee') {
-            $userData = array_filter([
-                'email' => $validated['email'] ?? null,
-                'password' => !empty($validated['password']) ? Hash::make($validated['password']) : null,
-            ]);
-
-            if (!empty($userData)) {
-                $contact->user()->updateOrCreate(
-                    ['contact_id' => $contact->id],
-                    $userData
-                );
-                $user=$contact->user;
-                $user?->tokens()->delete();
+            if ($u) {
+                $u->syncRoles($validated['roles']);
             }
         }
-    });
-     if (isset($validated['roles'])) {
-    $u = $contact->user; // Use dynamic property for the relationship instance
 
-    if ($u) {
-        $u->syncRoles($validated['roles']);
+        return new ContactResource($contact->load(['user']));
     }
-
-    return new ContactResource($contact->load(['user']));
-}
 
     /**
      * Remove the specified resource from storage.
