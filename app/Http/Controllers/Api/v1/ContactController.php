@@ -127,7 +127,7 @@ class ContactController extends Controller
             // 1. Create the Contact first (with the client-side UUID)
             $contact = Contact::create(
                 collect($validated)
-                    ->except(['image', 'password'])
+                    ->except(['image', 'password',"roles"])
                     ->toArray()
             );
             $contact->refresh(); // Ensure we have the latest state
