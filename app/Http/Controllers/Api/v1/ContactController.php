@@ -27,7 +27,7 @@ $contacts = Contact::query()
     ->with([
         'media',
         'warehouse',
-        'user.roles.permissions',
+        'user.roles',
         'createdByUser',
         'updatedByUser',
         'deletedByUser',
