@@ -256,12 +256,13 @@ public function update(Request $request, Contact $contact)
         $contact->update(
             collect($validated)->except(['image', 'password'])->toArray()
         );
-        if($validated['roles']){
-             $u = $contact->user();
-            if($u){
-                $u->roles()->sync($validated["roles"]);
-            }
-        }
+        if (!empty($validated['roles'])) {
+    $u = $contact->user; // Use dynamic property for the relationship instance
+
+    if ($u) {
+        $u->syncRoles($validated['roles']);
+    }
+}
 
         // 2. Handle image upload via Spatie Media Library
         if ($request->hasFile('image')) {
