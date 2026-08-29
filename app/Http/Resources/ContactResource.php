@@ -119,7 +119,7 @@ class ContactResource extends JsonResource
 
 
             'user' => $this->whenLoaded('user'),
-            'roles' => $this->whenLoaded('user.roles'),
+            'roles' => $this->user->roles,
         ];
     }
 }
