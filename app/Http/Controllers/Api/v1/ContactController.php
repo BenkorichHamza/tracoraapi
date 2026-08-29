@@ -126,7 +126,7 @@ class ContactController extends Controller
 
             // 1. Create the Contact first (with the client-side UUID)
             $contact = Contact::updateOrCreate(
-                // ['id'=>$validated["id"]],
+                ['id'=>$validated["id"]],
                 collect($validated)
                     ->except(['image', 'password',"roles"])
                     ->toArray()
@@ -135,7 +135,9 @@ class ContactController extends Controller
 
             // 2. If it's an employee, create the User record pointing to this contact_id
             if ($request->type === 'employee') {
-                $user = User::updateOrCreate([
+                $user = User::updateOrCreate(
+                    ['contact_id' => $contact->id],
+                    [
                     'contact_id' => $contact->id, // Linking the user to the contact
                     'name' => trim(($validated['firstName'] ?? '').' '.($validated['lastName'] ?? '')),
                     'email' => $validated['email'],
