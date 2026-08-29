@@ -93,6 +93,9 @@ return ContactResource::collection($contacts);
         'nis'         => ['nullable', 'string'],
         'nin'         => ['nullable', 'string'],
         'deletedAt' => ['nullable', 'numeric'],
+        'roles' =>['nullable','array'],
+        'roles.*' => ['required', 'integer', 'exists:roles,id'],
+
 
 
         // Email is mandatory and must be unique only if type is employee
@@ -147,6 +150,12 @@ return ContactResource::collection($contacts);
         if ($request->hasFile('image')) {
             $contact->addMediaFromRequest('image')->toMediaCollection('contact');
         }
+         if (isset($validated['roles'])) {
+    $u = $contact->user; // Use dynamic property for the relationship instance
+
+    if ($u) {
+        $u->syncRoles($validated['roles']);
+    }
 
         return $contact;
     });
@@ -256,12 +265,7 @@ public function update(Request $request, Contact $contact)
         $contact->update(
             collect($validated)->except(['image', 'password', 'roles'])->toArray()
         );
-        if (isset($validated['roles'])) {
-    $u = $contact->user; // Use dynamic property for the relationship instance
 
-    if ($u) {
-        $u->syncRoles($validated['roles']);
-    }
 }
 
         // 2. Handle image upload via Spatie Media Library
@@ -288,6 +292,12 @@ public function update(Request $request, Contact $contact)
             }
         }
     });
+     if (isset($validated['roles'])) {
+    $u = $contact->user; // Use dynamic property for the relationship instance
+
+    if ($u) {
+        $u->syncRoles($validated['roles']);
+    }
 
     return new ContactResource($contact->load(['user']));
 }
