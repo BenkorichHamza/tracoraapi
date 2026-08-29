@@ -259,7 +259,7 @@ public function update(Request $request, Contact $contact)
         if($validated['roles']){
              $u = $contact->user();
             if($u){
-                $u->roles->sync($validated["roles"]);
+                $u->roles()->sync($validated["roles"]);
             }
         }
 
