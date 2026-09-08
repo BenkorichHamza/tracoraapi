@@ -56,9 +56,9 @@ return new class extends Migration
 
             $table->string('code')->nullable();
 
-            $table->integer('createdAt')->nullable();
-            $table->integer('updatedAt')->nullable();
-            $table->integer('deletedAt')->nullable();
+            $table->bigInteger('createdAt')->nullable();
+            $table->bigInteger('updatedAt')->nullable();
+            $table->bigInteger('deletedAt')->nullable();
 
             /*
             |--------------------------------------------------------------------------
