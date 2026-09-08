@@ -228,7 +228,7 @@ class ContactController extends Controller
             'code' => ['nullable', 'string'],
             'deletedAt' => ['nullable', 'numeric'],
             'roles' => ['nullable', 'array'],
-            'roles.*' => ['required', 'integer', 'exists:roles,id'],
+            'roles.*' => ['nulllable', 'integer', 'exists:roles,id'],
 
             /*
             |--------------------------------------------------------------------------
