@@ -272,20 +272,25 @@ class ContactController extends Controller
 
             // 3. Handle Employee User record creation/update
             if ($request->type === 'employee') {
-                $userData = array_filter([
-                    'email' => $validated['email'] ?? null,
-                    'password' => ! empty($validated['password']) ? Hash::make($validated['password']) : null,
-                ]);
+    $userData = array_filter([
+        'email' => $validated['email'] ?? null,
+        'password' => !empty($validated['password'])
+            ? Hash::make($validated['password'])
+            : null,
+    ]);
 
-                if (! empty($userData)) {
-                    $contact->user()->updateOrCreate(
-                        ['contact_id' => $contact->id],
-                        $userData
-                    );
-                    $user = $contact->user;
-                    $user?->tokens()->delete();
-                }
-            }
+    if (!empty($userData)) {
+        $user = $contact->user()->updateOrCreate(
+            ['contact_id' => $contact->id],
+            $userData
+        );
+
+        // Clear tokens only when email or password was actually changed
+        if ($user->wasChanged(['email', 'password'])) {
+            $user->tokens()->delete();
+        }
+    }
+}
         });
         if (isset($validated['roles'])) {
             $u = $contact->user; // Use dynamic property for the relationship instance
