@@ -49,7 +49,6 @@ class WarehouseResource extends JsonResource
 
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
-            'deletedAt' => $this->deletedAt,
             'created_at' =>$this->created_at==null?null:Carbon::parse($this->created_at)->getTimestampMs(),
             'updated_at' => $this->updated_at==null?null:Carbon::parse($this->updated_at)->getTimestampMs(),
             'deleted_at' => $this->deleted_at==null?null:Carbon::parse($this->deleted_at)->getTimestampMs(),
