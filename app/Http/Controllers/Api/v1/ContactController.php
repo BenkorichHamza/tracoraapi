@@ -221,7 +221,14 @@ class ContactController extends Controller
 
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string'],
-            'email' => ['nullable', 'email'],
+            'email' => [
+    Rule::requiredIf($request->type === 'employee'),
+    'nullable',
+    'email',
+    Rule::unique('users', 'email')->ignore(
+        $contact->user?->id
+    ),
+],
             'warehouse_id' => ['nullable', 'uuid', 'exists:warehouses,id'],
             'fax' => ['nullable', 'string'],
             'fix' => ['nullable', 'string'],
