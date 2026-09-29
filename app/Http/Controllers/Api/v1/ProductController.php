@@ -477,7 +477,7 @@ return ProductResource::collection($products);
     ->join('warehouses as w', 'w.id', '=', 'st.to_warehouse')
     ->whereNull('p.deletedAt')
     ->whereNull('st.deletedAt')
-    ->where('st.datetime', '<', $cutoffDate)
+    ->where('st.updated_at', '<', $cutoffDate)
     ->whereNull('w.deletedAt')
     ->whereNotNull('st.to_warehouse')
     ->select(
