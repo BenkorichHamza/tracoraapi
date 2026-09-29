@@ -473,7 +473,7 @@ return ProductResource::collection($products);
     ->select(
         'pst.product_id',
         'st.to_warehouse as warehouse_id',
-        'pst.quantity as quantity'
+        'pst.qte as quantity'
     );
 
 $outgoing = DB::table('product_transaction as pst')
@@ -482,7 +482,7 @@ $outgoing = DB::table('product_transaction as pst')
     ->select(
         'pst.product_id',
         'st.from_warehouse as warehouse_id',
-        DB::raw('-pst.quantity as quantity')
+        DB::raw('-pst.qte as quantity')
     );
 
 $stock = $incoming
