@@ -468,7 +468,7 @@ return ProductResource::collection($products);
 
     public function stockBalance(){
         $incoming = DB::table('product_transaction as pst')
-    ->join('stransactions as st', 'st.id', '=', 'pst.stransaction_id')
+    ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
     ->whereNotNull('st.to_warehouse')
     ->select(
         'pst.product_id',
@@ -477,7 +477,7 @@ return ProductResource::collection($products);
     );
 
 $outgoing = DB::table('product_transaction as pst')
-    ->join('stransactions as st', 'st.id', '=', 'pst.stransaction_id')
+    ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
     ->whereNotNull('st.from_warehouse')
     ->select(
         'pst.product_id',
