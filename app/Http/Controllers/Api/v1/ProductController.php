@@ -468,7 +468,7 @@ return ProductResource::collection($products);
 
     public function stockBalance(Request $request)
 {
-    $days = $request->integer('days', 7);
+    $days = $request->integer('days', 0);
 
     $cutoffDate = now()->subDays($days)->startOfDay();
         $incoming = DB::table('product_transaction as pst')
