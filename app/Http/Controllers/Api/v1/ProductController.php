@@ -507,6 +507,6 @@ $balances = DB::query()
     ->groupBy('product_id', 'warehouse_id')
     ->get();
 
-return $balances;
+return response()->json($balances);
     }
 }
