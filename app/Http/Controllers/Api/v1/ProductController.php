@@ -470,8 +470,10 @@ return ProductResource::collection($products);
         $incoming = DB::table('product_transaction as pst')
     ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
     ->join('products as p', 'p.id', '=', 'pst.product_id')
+    ->join('warehouses as w', 'w.id', '=', 'pst.to_warehouse')
     ->whereNull('p.deletedAt')
     ->whereNull('st.deletedAt')
+    ->whereNull('w.deletedAt')
     ->whereNotNull('st.to_warehouse')
     ->select(
         'pst.product_id',
@@ -482,8 +484,10 @@ return ProductResource::collection($products);
 $outgoing = DB::table('product_transaction as pst')
     ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
     ->join('products as p', 'p.id', '=', 'pst.product_id')
+    ->join('warehouses as w', 'w.id', '=', 'pst.to_warehouse')
     ->whereNull('p.deletedAt')
     ->whereNull('st.deletedAt')
+    ->whereNull('w.deletedAt')
     ->whereNotNull('st.from_warehouse')
     ->select(
         'pst.product_id',
