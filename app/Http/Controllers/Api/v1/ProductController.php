@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use DateTime;
- use Illuminate\Support\Carbon;
+ use DB;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -463,5 +464,40 @@ return ProductResource::collection($products);
             'success' => true,
             'message' => 'Product deleted successfully',
         ]);
+    }
+
+    public function stockBalance(){
+        $incoming = DB::table('product_stransaction as pst')
+    ->join('stransactions as st', 'st.id', '=', 'pst.stransaction_id')
+    ->whereNotNull('st.to_warehouse')
+    ->select(
+        'pst.product_id',
+        'st.to_warehouse as warehouse_id',
+        'pst.quantity as quantity'
+    );
+
+$outgoing = DB::table('product_stransaction as pst')
+    ->join('stransactions as st', 'st.id', '=', 'pst.stransaction_id')
+    ->whereNotNull('st.from_warehouse')
+    ->select(
+        'pst.product_id',
+        'st.from_warehouse as warehouse_id',
+        DB::raw('-pst.quantity as quantity')
+    );
+
+$stock = $incoming
+    ->unionAll($outgoing);
+
+$balances = DB::query()
+    ->fromSub($stock, 'movements')
+    ->select(
+        'product_id',
+        'warehouse_id',
+        DB::raw('SUM(quantity) as stock')
+    )
+    ->groupBy('product_id', 'warehouse_id')
+    ->get();
+
+return $balances;
     }
 }

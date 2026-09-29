@@ -36,6 +36,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('mtransactions', MoneyTransactionController::class);
     Route::post('/push', [SyncLogController::class, 'push']);
     Route::get('/syncproducts', [ProductController::class, 'syncProduct']);
+    Route::get('/stockbalance', [ProductController::class, 'stockBalance']);
     Route::get('/syncwarehouses', [WarehouseController::class, 'sync']);
     Route::get('/synccontacts', [ContactController::class, 'sync']);
     Route::get('/syncmoneytransactions', [MoneyTransactionController::class, 'sync']);
