@@ -470,7 +470,7 @@ return ProductResource::collection($products);
 {
     $days = $request->integer('days', 0);
 
-    $cutoffDate = now()->subDays($days)->startOfDay();
+    $cutoffDate = now()->subDays($days)->endOfDay();
         $incoming = DB::table('product_transaction as pst')
     ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
     ->join('products as p', 'p.id', '=', 'pst.product_id')
