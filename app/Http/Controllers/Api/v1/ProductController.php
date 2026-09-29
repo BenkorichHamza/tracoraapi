@@ -467,12 +467,15 @@ return ProductResource::collection($products);
     }
 
     public function stockBalance(){
+        $cutoffDate = now()->subDays(7)->startOfDay();
+
         $incoming = DB::table('product_transaction as pst')
     ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
     ->join('products as p', 'p.id', '=', 'pst.product_id')
     ->join('warehouses as w', 'w.id', '=', 'st.to_warehouse')
     ->whereNull('p.deletedAt')
     ->whereNull('st.deletedAt')
+    ->where('st.datetime', '<', $cutoffDate)
     ->whereNull('w.deletedAt')
     ->whereNotNull('st.to_warehouse')
     ->select(
@@ -487,6 +490,7 @@ $outgoing = DB::table('product_transaction as pst')
     ->join('warehouses as w', 'w.id', '=', 'st.from_warehouse')
     ->whereNull('p.deletedAt')
     ->whereNull('st.deletedAt')
+    ->where('st.datetime', '<', $cutoffDate)
     ->whereNull('w.deletedAt')
     ->whereNotNull('st.from_warehouse')
     ->select(
