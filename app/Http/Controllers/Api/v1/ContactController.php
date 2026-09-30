@@ -349,7 +349,7 @@ $stransactions = DB::table('contacts as c')
     ->where('st.updated_at', '<', $cutoffDate)
     ->select(
         'st.userId',
-        '-(st.topay-st.payment) as credit',
+         DB::raw('-(st.topay - st.payment) as credit'),
     );
 
 $money = $moneyTransactions->unionAll($stransactions);
