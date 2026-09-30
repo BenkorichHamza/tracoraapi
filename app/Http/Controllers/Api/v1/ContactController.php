@@ -358,7 +358,7 @@ $balances = DB::query()
     ->fromSub($money, 'movements')
     ->select(
         'userId',
-        DB::raw('-SUM(credit) as due')
+        DB::raw('SUM(credit) as due')
     )
     ->groupBy('userId')
     ->get();
