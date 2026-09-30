@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/push', [SyncLogController::class, 'push']);
     Route::get('/syncproducts', [ProductController::class, 'syncProduct']);
     Route::get('/stockbalance', [ProductController::class, 'stockBalance']);
+    Route::get('/creditbalance', [ContactController::class, 'creditBalance']);
     Route::get('/syncwarehouses', [WarehouseController::class, 'sync']);
     Route::get('/synccontacts', [ContactController::class, 'sync']);
     Route::get('/syncmoneytransactions', [MoneyTransactionController::class, 'sync']);

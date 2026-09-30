@@ -492,7 +492,7 @@ $outgoing = DB::table('product_transaction as pst')
     ->join('warehouses as w', 'w.id', '=', 'st.from_warehouse')
     ->whereNull('p.deletedAt')
     ->whereNull('st.deletedAt')
-    ->where('st.datetime', '<', $cutoffDate)
+    ->where('st.updated_at', '<', $cutoffDate)
     ->whereNull('w.deletedAt')
     ->whereNotNull('st.from_warehouse')
     ->select(

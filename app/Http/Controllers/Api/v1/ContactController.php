@@ -326,4 +326,43 @@ class ContactController extends Controller
             'message' => 'Contact deleted successfully',
         ]);
     }
+
+    public function creditBalance(Request $request)
+{
+    $days = $request->integer('days', 0);
+
+    $cutoffDate = now()->subDays($days)->endOfDay();
+        $moneyTransactions = DB::table('contacts as c')
+    ->join('money_transactions as mt', 'mt.userId', '=', 'c.id')
+    ->whereNull('c.deletedAt')
+    ->whereNull('mt.deletedAt')
+    ->where('mt.updated_at', '<', $cutoffDate)
+    ->select(
+        'mt.userId',
+        'mt.amount as credit',
+    );
+
+$stransactions = DB::table('contacts as c')
+    ->join('stransactions as st', 'st.userId', '=', 'c.id')
+    ->whereNull('c.deletedAt')
+    ->whereNull('st.deletedAt')
+    ->where('st.updated_at', '<', $cutoffDate)
+    ->select(
+        'st.userId',
+        '-(st.topay-st.payment) as credit',
+    );
+
+$money = $moneyTransactions->unionAll($stransactions);
+
+$balances = DB::query()
+    ->fromSub($money, 'movements')
+    ->select(
+        'userId',
+        DB::raw('SUM(credit) as due')
+    )
+    ->groupBy('userId')
+    ->get();
+
+return response()->json($balances);
+    }
 }
