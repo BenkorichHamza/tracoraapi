@@ -52,6 +52,29 @@ class AuthController extends Controller
             'token' => $token
         ]);
     }
+public function getCurrentUser(Request $request)
+{
+    // Get the authenticated user from the token
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }
+
+    // Load the relations (mirroring your login response)
+    $user->load('contact.warehouse', 'roles.permissions');
+
+    // Fetch all roles if your frontend needs them on refresh/re-auth
+    $roles = Role::with('permissions')->get();
+
+    return response()->json([
+        'user' => $user,
+        'contact' => $user->contact,
+        'warehouse' => $user->contact?->warehouse,
+        'roles' => $roles,
+    ]);
+}
+
 
     public function logout(Request $request)
     {

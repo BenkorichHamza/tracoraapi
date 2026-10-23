@@ -23,9 +23,7 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    Route::get('/user', [AuthController::class,'getCurrentuser']);
 
     Route::apiResource('brands', BrandController::class);
     Route::apiResource('categories', CategoryController::class);
