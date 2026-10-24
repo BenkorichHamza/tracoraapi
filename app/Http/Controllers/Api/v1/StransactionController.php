@@ -88,7 +88,7 @@ $stransactions = Stransaction::query()
 
             'datetime' => ['nullable', 'numeric'],
 
-            'products' => ['array'],
+            'products' => ['required', 'array'],
 
             'products.*.productId' => ['required', 'uuid', 'exists:products,id'],
 
