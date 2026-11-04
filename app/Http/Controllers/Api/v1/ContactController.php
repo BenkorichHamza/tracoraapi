@@ -327,42 +327,62 @@ class ContactController extends Controller
         ]);
     }
 
-    public function creditBalance(Request $request)
+
+public function creditBalance(Request $request)
 {
     $days = $request->integer('days', 0);
 
     $cutoffDate = now()->subDays($days)->endOfDay();
-        $moneyTransactions = DB::table('contacts as c')
-    ->join('money_transactions as mt', 'mt.userId', '=', 'c.id')
-    ->whereNull('c.deletedAt')
-    ->whereNull('mt.deletedAt')
-    ->where('mt.updated_at', '<', $cutoffDate)
-    ->select(
-        'mt.userId',
-        'mt.amount as credit',
-    );
 
-$stransactions = DB::table('contacts as c')
-    ->join('stransactions as st', 'st.userId', '=', 'c.id')
-    ->whereNull('c.deletedAt')
-    ->whereNull('st.deletedAt')
-    ->where('st.updated_at', '<', $cutoffDate)
-    ->select(
-        'st.userId',
-         DB::raw('-(st.topay - st.payment) as credit'),
-    );
+    // Money transactions
+    $moneyTransactions = DB::table('contacts as c')
+        ->join('money_transactions as mt', 'mt.userId', '=', 'c.id')
+        ->whereNull('c.deletedAt')
+        ->whereNull('mt.deletedAt')
+        ->where('mt.updated_at', '<', $cutoffDate)
+        ->select(
+            'mt.userId',
+            'mt.amount as credit'
+        );
 
-$money = $moneyTransactions->unionAll($stransactions);
+    // Sales and purchases increase debt;
+    // refunds decrease debt.
+    $stransactions = DB::table('contacts as c')
+        ->join('stransactions as st', 'st.userId', '=', 'c.id')
+        ->whereNull('c.deletedAt')
+        ->whereNull('st.deletedAt')
+        ->where('st.updated_at', '<', $cutoffDate)
+        ->whereIn('st.type', [
+            'sale',
+            'purchase',
+            'salerefund',
+            'purchaserefund',
+        ])
+        ->select(
+            'st.userId',
+            DB::raw("
+                CASE
+                    WHEN st.type IN ('salerefund', 'purchaserefund')
+                    THEN (st.topay - st.payment)
+                    ELSE -(st.topay - st.payment)
+                END as credit
+            ")
+        );
 
-$balances = DB::query()
-    ->fromSub($money, 'movements')
-    ->select(
-        'userId',
-        DB::raw('SUM(credit) as due')
-    )
-    ->groupBy('userId')
-    ->get();
+    // Merge all credit movements
+    $money = $moneyTransactions->unionAll($stransactions);
 
-return response()->json($balances);
-    }
+    // Calculate balance per contact
+    $balances = DB::query()
+        ->fromSub($money, 'movements')
+        ->select(
+            'userId',
+            DB::raw('SUM(credit) as due')
+        )
+        ->groupBy('userId')
+        ->get();
+
+    return response()->json($balances);
+}
+
 }
