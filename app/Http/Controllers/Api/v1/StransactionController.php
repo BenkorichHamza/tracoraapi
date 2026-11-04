@@ -209,7 +209,7 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
 $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ?? now()->getTimestampMs())->setTimezone(config('app.timezone'));
 
     $stransaction->update([
-        ...collect($validated)->except('products')->toArray(),
+        ...collect($validated)->except('products','datetime')->toArray(),
         'updatedBy' => auth()->id(),
     ]);
 
