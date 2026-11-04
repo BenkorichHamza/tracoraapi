@@ -195,8 +195,8 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
         'products.*.direction' => ['nullable', 'integer'],
 
         'deletedAt' => ['nullable', 'numeric'],
-        'createddAt' => ['nullable', 'numeric'],
-        'updateddAt' => ['nullable', 'numeric'],
+        'createdAt' => ['nullable', 'numeric'],
+        'updatedAt' => ['nullable', 'numeric'],
 
     ]);
 
