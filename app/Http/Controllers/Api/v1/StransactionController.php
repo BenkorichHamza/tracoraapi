@@ -110,7 +110,7 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
         $transaction = Stransaction::updateOrCreate([
             'id' => $validated['id']
         ], [
-            ...collect($validated)->except('products',"datetime")->toArray(),
+            ...collect($validated)->except('products')->toArray(),
             'createdBy' => auth()->id(),
         ]);
 
@@ -192,6 +192,7 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
 
         'products.*.tax' => ['nullable', 'numeric'],
 
+
         'products.*.direction' => ['nullable', 'integer'],
 
         'deletedAt' => ['nullable', 'numeric'],
@@ -208,8 +209,8 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
 
 $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ?? now()->getTimestampMs())->setTimezone(config('app.timezone'));
 
-    $stransaction->update([
-        ...collect($validated)->except(['products','datetime'])->toArray(),
+     $stransaction->update([
+        ...collect($validated)->except('products')->toArray(),
         'updatedBy' => auth()->id(),
     ]);
 
