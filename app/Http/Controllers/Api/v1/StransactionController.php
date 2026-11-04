@@ -110,7 +110,7 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
         $transaction = Stransaction::updateOrCreate([
             'id' => $validated['id']
         ], [
-            ...collect($validated)->except('products')->toArray(),
+            ...collect($validated)->except('products',"datetime")->toArray(),
             'createdBy' => auth()->id(),
         ]);
 
