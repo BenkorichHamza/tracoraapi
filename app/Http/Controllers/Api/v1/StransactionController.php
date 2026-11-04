@@ -214,6 +214,7 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
         'updatedBy' => auth()->id(),
     ]);
 
+
     /*
     |--------------------------------------------------------------------------
     | Update products pivot
