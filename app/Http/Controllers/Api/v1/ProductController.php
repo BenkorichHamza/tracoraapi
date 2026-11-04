@@ -179,6 +179,8 @@ return ProductResource::collection($products);
             ],
 
             'deletedAt' => ['nullable', 'numeric'],
+            'createddAt' => ['nullable', 'numeric'],
+            'updateddAt' => ['nullable', 'numeric'],
 
 
             'categories' => ['nullable', 'array'],
@@ -362,6 +364,8 @@ return ProductResource::collection($products);
             'fabDate' => ['nullable', 'date'],
 
             'perDate' => ['nullable', 'date'],
+            'createddAt' => ['nullable', 'numeric'],
+            'updateddAt' => ['nullable', 'numeric'],
 
             /*
             |--------------------------------------------------------------------------
@@ -466,53 +470,70 @@ return ProductResource::collection($products);
         ]);
     }
 
-    public function stockBalance(Request $request)
+
+public function stockBalance(Request $request)
 {
     $days = $request->integer('days', 0);
 
     $cutoffDate = now()->subDays($days)->endOfDay();
-        $incoming = DB::table('product_transaction as pst')
-    ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
-    ->join('products as p', 'p.id', '=', 'pst.product_id')
-    ->join('warehouses as w', 'w.id', '=', 'st.to_warehouse')
-    ->whereNull('p.deletedAt')
-    ->whereNull('st.deletedAt')
-    ->where('st.updated_at', '<', $cutoffDate)
-    ->whereNull('w.deletedAt')
-    ->whereNotNull('st.to_warehouse')
-    ->select(
-        'pst.product_id',
-        'st.to_warehouse as warehouse_id',
-        'pst.qte as quantity'
-    );
 
-$outgoing = DB::table('product_transaction as pst')
-    ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
-    ->join('products as p', 'p.id', '=', 'pst.product_id')
-    ->join('warehouses as w', 'w.id', '=', 'st.from_warehouse')
-    ->whereNull('p.deletedAt')
-    ->whereNull('st.deletedAt')
-    ->where('st.updated_at', '<', $cutoffDate)
-    ->whereNull('w.deletedAt')
-    ->whereNotNull('st.from_warehouse')
-    ->select(
-        'pst.product_id',
-        'st.from_warehouse as warehouse_id',
-        DB::raw('-pst.qte as quantity')
-    );
+    // Incoming stock movements
+    $incoming = DB::table('product_transaction as pst')
+        ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
+        ->join('products as p', 'p.id', '=', 'pst.product_id')
+        ->join('warehouses as w', 'w.id', '=', 'st.to_warehouse')
+        ->whereNull('p.deletedAt')
+        ->whereNull('st.deletedAt')
+        ->whereNull('w.deletedAt')
+        ->where('st.updated_at', '<', $cutoffDate)
+        ->whereNotNull('st.to_warehouse')
+        ->whereIn('st.type', [
+            'purchase',
+            'transfert',
+            'salerefund',
+        ])
+        ->select(
+            'pst.product_id',
+            'st.to_warehouse as warehouse_id',
+            DB::raw('pst.qte as quantity')
+        );
 
-$stock = $incoming->unionAll($outgoing);
+    // Outgoing stock movements
+    $outgoing = DB::table('product_transaction as pst')
+        ->join('stransactions as st', 'st.id', '=', 'pst.transaction_id')
+        ->join('products as p', 'p.id', '=', 'pst.product_id')
+        ->join('warehouses as w', 'w.id', '=', 'st.from_warehouse')
+        ->whereNull('p.deletedAt')
+        ->whereNull('st.deletedAt')
+        ->whereNull('w.deletedAt')
+        ->where('st.updated_at', '<', $cutoffDate)
+        ->whereNotNull('st.from_warehouse')
+        ->whereIn('st.type', [
+            'sale',
+            'transfert',
+            'purchaserefund',
+        ])
+        ->select(
+            'pst.product_id',
+            'st.from_warehouse as warehouse_id',
+            DB::raw('-pst.qte as quantity')
+        );
 
-$balances = DB::query()
-    ->fromSub($stock, 'movements')
-    ->select(
-        'product_id',
-        'warehouse_id',
-        DB::raw('SUM(quantity) as stock')
-    )
-    ->groupBy('product_id', 'warehouse_id')
-    ->get();
+    // Merge incoming and outgoing movements
+    $stock = $incoming->unionAll($outgoing);
 
-return response()->json($balances);
-    }
+    // Calculate balance per product and warehouse
+    $balances = DB::query()
+        ->fromSub($stock, 'movements')
+        ->select(
+            'product_id',
+            'warehouse_id',
+            DB::raw('SUM(quantity) as stock')
+        )
+        ->groupBy('product_id', 'warehouse_id')
+        ->get();
+
+    return response()->json($balances);
+}
+
 }

@@ -101,6 +101,8 @@ $stransactions = Stransaction::query()
             'products.*.direction' => ['nullable', 'integer'],
 
             'deletedAt' => ['nullable', 'numeric'],
+            'createddAt' => ['nullable', 'numeric'],
+            'updateddAt' => ['nullable', 'numeric'],
 
         ]);
 
@@ -193,6 +195,8 @@ $validated['datetime'] = Carbon::createFromTimestampMs($validated['datetime'] ??
         'products.*.direction' => ['nullable', 'integer'],
 
         'deletedAt' => ['nullable', 'numeric'],
+        'createddAt' => ['nullable', 'numeric'],
+        'updateddAt' => ['nullable', 'numeric'],
 
     ]);
 
