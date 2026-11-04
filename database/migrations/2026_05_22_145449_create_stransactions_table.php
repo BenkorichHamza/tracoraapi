@@ -84,9 +84,9 @@ return new class extends Migration
             $table->timestamp('datetime')->nullable();
 
 
-            $table->integer('createdAt')->nullable();
-            $table->integer('updatedAt')->nullable();
-            $table->integer('deletedAt')->nullable();
+            $table->bigInteger('createdAt')->nullable();
+            $table->bigInteger('updatedAt')->nullable();
+            $table->bigInteger('deletedAt')->nullable();
             /*
             |--------------------------------------------------------------------------
             | Audit
