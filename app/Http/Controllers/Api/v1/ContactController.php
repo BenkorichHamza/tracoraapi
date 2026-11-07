@@ -342,7 +342,7 @@ public function creditBalance(Request $request)
         ->where('mt.updated_at', '<', $cutoffDate)
         ->select(
             'mt.userId',
-            '-mt.amount as credit'
+            'mt.amount as credit'
         );
 
     // Sales and purchases increase debt;
@@ -363,8 +363,8 @@ public function creditBalance(Request $request)
             DB::raw("
                 CASE
                     WHEN st.type IN ('salerefund', 'purchaserefund')
-                    THEN -(st.topay - st.payment)
-                    ELSE (st.topay - st.payment)
+                    THEN (st.topay - st.payment)
+                    ELSE -(st.topay - st.payment)
                 END as credit
             ")
         );
